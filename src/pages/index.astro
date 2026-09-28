@@ -38,7 +38,7 @@ import { VILLA, GALLERY } from '../lib/villa';
    ------------------------------------------------------------ */
 const VOYAGEURS = [
   { nom: 'Les curistes', meta: 'Thermes à quelques minutes', href: '/digne-les-bains',
-    img: '/images/chalet/salon-lumiere.webp' },
+    img: '/images/digne/thermes.webp' },
   { nom: 'Les randonneurs', meta: 'Au pied de la montagne', href: '/digne-les-bains',
     img: '/images/chalet/vue-montagne.webp' },
   { nom: 'Les cyclistes', meta: 'Vélos à disposition', href: '/le-chalet',
@@ -75,7 +75,7 @@ const VOYAGEURS = [
 
     <div class="fronti__grille mesure">
       <p class="fronti__lieu" data-fronti-lieu>
-        <span>Digne-les-Bains</span><i aria-hidden="true"></i><span>Haute-Provence</span>
+        <span>Digne-les-Bains</span><i aria-hidden="true"></i><span>Provence</span>
       </p>
 
       {/* Un seul `h1` pour le référencement ; le découpage est fait par le
@@ -251,7 +251,7 @@ const VOYAGEURS = [
     <div class="mesure">
       <div class="galet">
         <Photo src="/images/digne/vue-digne.webp" sizes="pleine" loading="lazy" decoding="async"
-               alt="Digne-les-Bains dans sa vallée, entourée de montagnes boisées"
+               alt="Digne-les-Bains au pied du Rocher de Neuf-Heures, les montagnes boisées tout autour"
                class="h-full w-full object-cover" />
         <div class="galet__texte">
           <h2 class="galet__titre">Digne-les-Bains</h2>
@@ -330,11 +330,11 @@ const VOYAGEURS = [
     <div class="mesure">
       <div class="duo">
         <Tile href="/digne-les-bains" img="/images/digne/dalle-ammonites.webp"
-              alt="La dalle aux ammonites, un pan de roche couvert de fossiles spiralés"
+              alt="La dalle aux ammonites, une roche grise couverte de fossiles spiralés"
               title="Le Géoparc" cta="Suivre les fossiles" sizes="moitie"
               abstract="La dalle aux ammonites, le Musée Promenade, la via ferrata du Rocher de Neuf-Heures : deux cents millions d’années à ciel ouvert." />
         <Tile href="/digne-les-bains" img="/images/digne/lavande-valensole.webp"
-              alt="Rangs de lavande en fleurs sur le plateau de Valensole"
+              alt="Rangs de lavande en fleurs sur le plateau de Valensole, un arbre isolé à l’horizon"
               title="La lavande" cta="Partir sur le plateau" sizes="moitie"
               abstract="Digne est la capitale de la lavande. En juillet, les champs du plateau de Valensole fleurissent à moins d’une heure de route." />
       </div>
@@ -555,6 +555,12 @@ const VOYAGEURS = [
     font-family: theme('fontFamily.sans'); font-size: 0.66rem; font-weight: 500;
     text-transform: uppercase; letter-spacing: 0.42em; text-indent: 0.42em;
     color: rgb(243 238 226 / 0.94);
+  }
+  /* Les noms de lieu ne se coupent pas à leurs traits d'union ; sous
+     480 px l'interlettrage se resserre pour que la ligne tienne entière. */
+  .fronti__lieu span { white-space: nowrap; }
+  @media (max-width: 480px) {
+    .fronti__lieu { gap: 0.8rem; letter-spacing: 0.3em; text-indent: 0.3em; }
   }
   .fronti__lieu i { display: block; width: 2.5rem; height: 1px; background: theme('colors.gold'); opacity: .8; }
 

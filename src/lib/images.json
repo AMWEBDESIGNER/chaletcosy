@@ -510,5 +510,149 @@
       1280,
       1920
     ]
+  },
+  "/images/digne/dalle-ammonites.webp": {
+    "stem": "/images/rendus/digne/dalle-ammonites",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/digne/lavande-valensole.webp": {
+    "stem": "/images/rendus/digne/lavande-valensole",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/digne/maison-david-neel.webp": {
+    "stem": "/images/rendus/digne/maison-david-neel",
+    "w": 1920,
+    "h": 1080,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/digne/montagne.webp": {
+    "stem": "/images/rendus/digne/montagne",
+    "w": 1920,
+    "h": 1007,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/digne/musee-promenade.webp": {
+    "stem": "/images/rendus/digne/musee-promenade",
+    "w": 1920,
+    "h": 1280,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/digne/notre-dame-du-bourg.webp": {
+    "stem": "/images/rendus/digne/notre-dame-du-bourg",
+    "w": 1920,
+    "h": 1280,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/digne/rocher-neuf-heures.webp": {
+    "stem": "/images/rendus/digne/rocher-neuf-heures",
+    "w": 1920,
+    "h": 1081,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/digne/thermes.webp": {
+    "stem": "/images/rendus/digne/thermes",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/digne/vue-digne.webp": {
+    "stem": "/images/rendus/digne/vue-digne",
+    "w": 1920,
+    "h": 928,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
   }
 }

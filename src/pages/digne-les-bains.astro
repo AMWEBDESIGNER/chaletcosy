@@ -20,6 +20,8 @@ const trail: [string, string][] = [['Digne-les-Bains', '/digne-les-bains']];
    Les lieux sont ceux que cite l'annonce du chalet : le Musée Promenade,
    le Musée Gassendi, la maison d'Alexandra David-Néel, la dalle aux
    ammonites et sa via ferrata, le Rocher de Neuf-Heures, le plan d'eau.
+   Faute de photographie libre, le Musée Gassendi et le plan d'eau sont
+   cités dans le texte de lieux voisins plutôt que d'avoir leur carte.
 
    ⚠️ Ce sont des contenus TERMINAUX — ils ne mènent nulle part. Tout y
    reste donc visible en permanence : ni tuile qui masque son résumé au
@@ -30,7 +32,7 @@ const places = [
     poids: 'moyen',
     meta: 'Tout près du chalet',
     img: '/images/digne/musee-promenade.webp',
-    alt: 'Le Musée Promenade du Géoparc de Haute-Provence',
+    alt: 'La grande cascade du Musée Promenade, un rideau d’eau sur un rocher couvert de mousse',
     desc: "Des sentiers sous les arbres, des cascades, des salles de fossiles et des œuvres d’art posées dans la nature. C’est le repère du chalet : l’annonce le donne pour voisin.",
   },
   {
@@ -38,7 +40,7 @@ const places = [
     poids: 'grand',
     meta: 'Géoparc mondial UNESCO',
     img: '/images/digne/dalle-ammonites.webp',
-    alt: 'La dalle aux ammonites, un pan de roche incliné couvert de fossiles spiralés',
+    alt: 'La dalle aux ammonites, une roche grise couverte de fossiles spiralés',
     desc: "Au nord de la ville, une dalle de calcaire dressée porte plus de mille cinq cents ammonites, figées là depuis près de deux cents millions d’années. C’est le site emblématique du Géoparc de Haute-Provence.",
   },
   {
@@ -46,7 +48,7 @@ const places = [
     poids: 'moyen',
     meta: 'À quelques minutes',
     img: '/images/digne/thermes.webp',
-    alt: 'Les thermes de Digne-les-Bains',
+    alt: 'Les thermes de Digne, au pied d’une haute falaise dans un vallon boisé',
     desc: "Digne doit son nom à ses eaux chaudes, fréquentées depuis l’Antiquité. Les thermes accueillent les cures en rhumatologie et pour les voies respiratoires — et le chalet, les curistes, pour la durée de leur cure.",
   },
   {
@@ -54,32 +56,32 @@ const places = [
     poids: 'grand',
     meta: 'Via ferrata et randonnées',
     img: '/images/digne/rocher-neuf-heures.webp',
-    alt: 'La falaise du Rocher de Neuf-Heures au-dessus de Digne',
+    alt: 'Les crêtes rocheuses au-dessus de Digne, les sommets enneigés des Alpes à l’horizon',
     desc: "La falaise qui domine la ville porte une via ferrata, celle de la Grande Fistoire. Pour qui préfère marcher, les sentiers des Préalpes de Digne partent de partout, et les vélos du chalet attendent sous la terrasse.",
   },
   {
-    name: 'Le Musée Gassendi',
+    name: 'Notre-Dame-du-Bourg',
     poids: 'intime',
-    meta: 'Centre-ville',
-    img: '/images/digne/musee-gassendi.webp',
-    alt: 'Le Musée Gassendi dans le centre de Digne',
-    desc: "Beaux-arts, sciences naturelles et art contemporain sous un même toit. Le musée porte aussi les Refuges d’Art d’Andy Goldsworthy, des œuvres semées le long des sentiers de montagne.",
+    meta: 'Cathédrale romane',
+    img: '/images/digne/notre-dame-du-bourg.webp',
+    alt: 'La cathédrale Notre-Dame-du-Bourg, sa rosace et ses murs de pierre',
+    desc: "L’ancienne cathédrale de Digne, grand vaisseau roman de pierre claire au bas de la ville. À quelques rues de là, le Musée Gassendi mêle beaux-arts, sciences et art contemporain — et porte les Refuges d’Art d’Andy Goldsworthy, semés le long des sentiers de montagne.",
   },
   {
     name: 'La maison d’Alexandra David-Néel',
     poids: 'intime',
     meta: 'Samten Dzong',
     img: '/images/digne/maison-david-neel.webp',
-    alt: 'La maison d’Alexandra David-Néel à Digne-les-Bains',
+    alt: 'La maison d’Alexandra David-Néel, façade blanche aux volets verts entre les arbres',
     desc: "L’exploratrice, première Européenne entrée à Lhassa, a vécu ses dernières décennies à Digne. Sa maison se visite : souvenirs du Tibet, bibliothèque et jardin.",
   },
   {
-    name: 'Le plan d’eau des Ferréols',
-    poids: 'intime',
-    meta: 'Au bord de la Bléone',
-    img: '/images/digne/plan-eau.webp',
-    alt: 'Le plan d’eau des Ferréols au pied des montagnes',
-    desc: "Un plan d’eau entouré de pelouses et de promenades : le lieu des pique-niques, des tours de vélo et des fins de journée d’été.",
+    name: 'Le Cousson',
+    poids: 'moyen',
+    meta: 'Randonnée au-dessus de la ville',
+    img: '/images/digne/montagne.webp',
+    alt: 'Le Cousson, sommet boisé des Préalpes de Digne sous un ciel d’orage',
+    desc: "La montagne qui ferme l’horizon du chalet. Son sommet se gagne à pied depuis la ville, et ses pentes font partie de ce que l’annonce appelle les richesses naturelles environnantes. Au retour, le plan d’eau des Ferréols attend au bord de la Bléone.",
   },
   {
     name: 'La lavande',
@@ -116,7 +118,7 @@ const POIDS: Record<string, {
 <Layout title="Digne-les-Bains — thermes, Géoparc, lavande et montagne"
         description="Les thermes, la dalle aux ammonites, le Musée Promenade, la via ferrata et les champs de lavande : tout ce qui entoure le Chalet Cosy à Digne-les-Bains."
         image="/images/digne/vue-digne.webp"
-        imageAlt="Digne-les-Bains dans sa vallée, entourée de montagnes"
+        imageAlt="Digne-les-Bains au pied du Rocher de Neuf-Heures"
         jsonLd={breadcrumb(Astro.site, trail)}>
   <!-- En-tête -->
   <section data-hero class="container-x pt-32">
@@ -139,7 +141,7 @@ const POIDS: Record<string, {
   <section class="container-x mt-14">
     <figure data-anim="capsule" class="hover-zoom relative aspect-[16/9] overflow-hidden bg-sand">
       <Photo src="/images/digne/vue-digne.webp" sizes="article"
-             alt="Digne-les-Bains dans sa vallée, entourée de montagnes boisées"
+             alt="Digne-les-Bains au pied du Rocher de Neuf-Heures, les montagnes boisées tout autour"
              fetchpriority="high" decoding="async" class="h-full w-full object-cover" />
     </figure>
   </section>
