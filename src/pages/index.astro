@@ -494,6 +494,9 @@ const VOYAGEURS = [
   .galet__titre {
     font-family: theme('fontFamily.serif'); font-weight: 400;
     font-size: clamp(2rem, 5.5vw, 4rem); line-height: 1; letter-spacing: -0.02em;
+    /* « Digne-les-Bains » est un nom propre : il ne se coupe pas à ses traits
+       d'union. Il tient sur une ligne dès 320 px au plus petit corps. */
+    white-space: nowrap;
   }
   .galet__dit { margin-top: 1.1rem; font-size: 1.02rem; line-height: 1.6;
                 color: rgb(243 238 226 / 0.88); }

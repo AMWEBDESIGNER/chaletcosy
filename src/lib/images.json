@@ -1,0 +1,514 @@
+{
+  "/images/chalet/allee-chalet.webp": {
+    "stem": "/images/rendus/chalet/allee-chalet",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/allee-lauriers.webp": {
+    "stem": "/images/rendus/chalet/allee-lauriers",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/bureau.webp": {
+    "stem": "/images/rendus/chalet/bureau",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/chalet-collines.webp": {
+    "stem": "/images/rendus/chalet/chalet-collines",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/chalet-contre-jour.webp": {
+    "stem": "/images/rendus/chalet/chalet-contre-jour",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/chalet-facade.webp": {
+    "stem": "/images/rendus/chalet/chalet-facade",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/chalet-face.webp": {
+    "stem": "/images/rendus/chalet/chalet-face",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/chalet-fleurs.webp": {
+    "stem": "/images/rendus/chalet/chalet-fleurs",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/chalet-terrasse.webp": {
+    "stem": "/images/rendus/chalet/chalet-terrasse",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/chambre-applique.webp": {
+    "stem": "/images/rendus/chalet/chambre-applique",
+    "w": 1920,
+    "h": 2560,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/chambre-linge-blanc.webp": {
+    "stem": "/images/rendus/chalet/chambre-linge-blanc",
+    "w": 1920,
+    "h": 2560,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/chambre-lit-orange.webp": {
+    "stem": "/images/rendus/chalet/chambre-lit-orange",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/chambre-serviettes.webp": {
+    "stem": "/images/rendus/chalet/chambre-serviettes",
+    "w": 1920,
+    "h": 2560,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/coursive-lumiere.webp": {
+    "stem": "/images/rendus/chalet/coursive-lumiere",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/coursive-soir.webp": {
+    "stem": "/images/rendus/chalet/coursive-soir",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/cuisine-entree.webp": {
+    "stem": "/images/rendus/chalet/cuisine-entree",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/cuisine-equipement.webp": {
+    "stem": "/images/rendus/chalet/cuisine-equipement",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/cuisine-porte-ouverte.webp": {
+    "stem": "/images/rendus/chalet/cuisine-porte-ouverte",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/douche.webp": {
+    "stem": "/images/rendus/chalet/douche",
+    "w": 1920,
+    "h": 2560,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/fleurs-coreopsis.webp": {
+    "stem": "/images/rendus/chalet/fleurs-coreopsis",
+    "w": 1920,
+    "h": 2560,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/jardin-falaises.webp": {
+    "stem": "/images/rendus/chalet/jardin-falaises",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/jardin-montagne.webp": {
+    "stem": "/images/rendus/chalet/jardin-montagne",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/jardin-pelouse.webp": {
+    "stem": "/images/rendus/chalet/jardin-pelouse",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/lagerstroemia.webp": {
+    "stem": "/images/rendus/chalet/lagerstroemia",
+    "w": 1920,
+    "h": 1443,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/salle-eau-vasque.webp": {
+    "stem": "/images/rendus/chalet/salle-eau-vasque",
+    "w": 1920,
+    "h": 2560,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/salon-canape.webp": {
+    "stem": "/images/rendus/chalet/salon-canape",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/salon-lumiere.webp": {
+    "stem": "/images/rendus/chalet/salon-lumiere",
+    "w": 1920,
+    "h": 2560,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/terrasse-gravier.webp": {
+    "stem": "/images/rendus/chalet/terrasse-gravier",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/terrasse-soir.webp": {
+    "stem": "/images/rendus/chalet/terrasse-soir",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/terrasse-table.webp": {
+    "stem": "/images/rendus/chalet/terrasse-table",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/toilettes.webp": {
+    "stem": "/images/rendus/chalet/toilettes",
+    "w": 1920,
+    "h": 2560,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  },
+  "/images/chalet/vue-montagne.webp": {
+    "stem": "/images/rendus/chalet/vue-montagne",
+    "w": 1920,
+    "h": 1440,
+    "webp": [
+      480,
+      800,
+      1280
+    ],
+    "avif": [
+      480,
+      800,
+      1280,
+      1920
+    ]
+  }
+}
