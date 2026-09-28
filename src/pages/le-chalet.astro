@@ -1,0 +1,269 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import SectionHead from '../components/SectionHead.astro';
+import Photo from '../components/Photo.astro';
+import { VILLA, LEVELS, AMENITIES, RULES, GALLERY } from '../lib/villa';
+import { breadcrumb, faq } from '../lib/seo';
+
+/* Les quatre questions balisées reprennent mot pour mot ce qu'affichent
+   « Le séjour », « Le règlement » et la section des longs séjours, plus bas. */
+const trail: [string, string][] = [['Le chalet', '/le-chalet']];
+const jsonLd = [breadcrumb(Astro.site, trail), faq()];
+---
+<Layout title="Le chalet — 30 m² tout confort pour quatre à Digne-les-Bains"
+        description="Chalet en bois de 30 m² de plain-pied : une chambre, un canapé convertible, cuisine équipée, bureau, climatisation réversible, terrasse, jardin et vélos."
+        image="/images/chalet/chalet-terrasse.webp"
+        imageAlt="Le chalet en mélèze et sa grande terrasse, au soleil du matin"
+        jsonLd={jsonLd}>
+  <!-- En-tête -->
+  <section data-hero class="container-x pt-32">
+    <div class="max-w-3xl">
+      <Breadcrumb trail={trail} />
+      <span class="eyebrow">Le chalet</span>
+      <h1 class="display mt-6 !text-[clamp(2.3rem,5.6vw,4.6rem)]">
+        <span data-anim="lignes" class="block">Tout le confort,</span>
+        <span class="block">en <span class="script script--accent">bois</span></span>
+      </h1>
+      <p class="lead mt-7 max-w-xl">
+        {VILLA.surface} m² de plain-pied, une chambre, un canapé convertible et une salle
+        d’eau, une terrasse et un jardin. Le chalet se loue entier : rien n’est partagé.
+      </p>
+    </div>
+  </section>
+
+  <!-- Bandeau photographique -->
+  <section class="container-x mt-14">
+    <div class="grid gap-3 md:grid-cols-12">
+      <figure data-anim="capsule" class="hover-zoom col-span-12 aspect-[16/10] overflow-hidden bg-sand md:col-span-8">
+        <Photo src="/images/chalet/chalet-terrasse.webp" sizes="deux-tiers"
+               alt="Le chalet en mélèze et sa grande terrasse, au soleil du matin"
+               fetchpriority="high" decoding="async" class="h-full w-full object-cover" />
+      </figure>
+      <div class="col-span-12 grid grid-cols-3 gap-3 md:col-span-4 md:grid-cols-1">
+        {[
+          ['/images/chalet/salon-lumiere', 'Le salon baigné de soleil, canapé blanc et table ronde'],
+          ['/images/chalet/chambre-linge-blanc', 'Le lit double dressé de blanc, tête de lit en bois'],
+          ['/images/chalet/cuisine-porte-ouverte', 'La cuisine et la porte ouverte sur l’allée'],
+        ].map(([src, alt]) => (
+          <figure data-anim="capsule" class="hover-zoom aspect-[4/3] overflow-hidden bg-sand md:aspect-auto md:h-full">
+            <Photo src={`${src}.webp`} sizes="tiers" alt={alt} loading="lazy" decoding="async"
+                   class="h-full w-full object-cover" />
+          </figure>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- L'esprit du lieu -->
+  <section class="section">
+    <div class="container-x grid items-start gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
+      <div data-anim="capsule" class="arch hover-zoom relative aspect-[3/4] overflow-hidden bg-sand">
+        <Photo src="/images/chalet/allee-lauriers.webp" sizes="tiers" loading="lazy" decoding="async"
+               alt="L’arrivée au chalet par l’allée, entre lauriers-roses et arbustes"
+               class="h-full w-full object-cover" />
+      </div>
+      <div>
+        <span class="eyebrow">L’esprit du lieu</span>
+        <h2 data-anim="lignes" class="h-lg mt-6">Un chalet au pied de la montagne.</h2>
+        <div class="prose-body mt-7 max-w-prose space-y-5">
+          <p>
+            Chalet Cosy est un chalet de mélèze posé au fond d’une allée de gravier, dans un
+            jardin fleuri. Un cadre agréable et apaisant, entre nature et thermes, proche de
+            toutes les commodités.
+          </p>
+          <p>
+            Il a été pensé pour ceux qui viennent à Digne pour une raison précise : les
+            curistes des thermes, les saisonniers, les randonneurs et les cyclistes, les
+            professionnels en déplacement — et, bien sûr, les couples et les familles en
+            vacances.
+          </p>
+          <p>
+            Tout est de plain-pied, habillé de bois, et la climatisation réversible le rend
+            confortable en toute saison : chaud l’hiver, frais au cœur de l’été provençal.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ LES ESPACES — les cartes qui s'empilent ═══════════
+       Trois temps de la visite, donc trois cartes qui se posent l'une SUR
+       l'autre à mesure qu'on descend : on traverse le chalet en défilant. Chaque
+       carte est épinglée sous l'en-tête pendant que la suivante vient la
+       recouvrir, en s'enfonçant très légèrement — c'est ce retrait qui fait
+       lire une pile plutôt qu'un remplacement.
+
+       Le geste dit ce que le contenu dit : une visite, pièce après pièce.
+       Une rangée de trois colonnes les aurait mis au même rang, comme
+       trois produits au même prix. -->
+  <section class="section !pt-0">
+    <div class="container-x">
+      <SectionHead eyebrow="La visite" title="Trente mètres carrés, trois temps" class="mb-16" />
+    </div>
+
+    <div data-pile class="pile">
+      {LEVELS.map((lv, i) => (
+        <article class="pile__carte" style={`--rang:${i}`}>
+          <div class="pile__grille container-x">
+            <div class="pile__vue hover-zoom">
+              <Photo src={lv.img} sizes="moitie" alt={lv.alt} loading="lazy" decoding="async"
+                     class="h-full w-full object-cover" />
+            </div>
+            <div class="pile__dit">
+              <span class="pile__rang">{String(i + 1).padStart(2, '0')} — {lv.kicker}</span>
+              <h3 class="pile__nom">{lv.name}</h3>
+              <ul class="pile__liste">
+                {lv.rooms.map((r) => (
+                  <li><span aria-hidden="true">—</span>{r}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+<style>
+  /* ---------- LA PILE ----------
+     ⚠️ PAS de `position: sticky` ici. ScrollSmoother déplace son contenu
+     par transformation, ce qui fait de lui le bloc conteneur de tous ses
+     descendants : il n'existe plus de défilement d'ancêtre contre lequel se
+     coller, et la carte se contente alors de défiler. C'est `pin` de
+     ScrollTrigger qui empile — voir `pileCartes()` dans `anim.ts`.
+     Le fond OPAQUE, lui, reste indispensable : sans lui on verrait la carte
+     précédente par transparence et la pile deviendrait illisible. */
+  .pile__carte {
+    position: relative;
+    background: theme('colors.bone');
+    border-top: 1px solid theme('colors.hair');
+    padding-block: clamp(2rem, 4vw, 3.25rem);
+  }
+  .pile__carte:nth-child(even) { background: theme('colors.sand'); }
+
+  .pile__grille { display: grid; gap: clamp(1.5rem, 4vw, 3rem); align-items: center; }
+  @media (min-width: 860px) {
+    .pile__grille { grid-template-columns: 1fr 1fr; }
+  }
+
+  .pile__vue { aspect-ratio: 4 / 3; overflow: hidden; background: theme('colors.sand'); }
+  .pile__rang {
+    display: block; font-family: theme('fontFamily.sans'); font-size: 0.68rem;
+    text-transform: uppercase; letter-spacing: 0.18em; color: theme('colors.bronze');
+  }
+  .pile__nom {
+    margin-top: 0.7rem; font-family: theme('fontFamily.serif'); font-weight: 400;
+    font-size: clamp(1.6rem, 3vw, 2.3rem); line-height: 1.1; letter-spacing: -0.018em;
+  }
+  .pile__liste { margin-top: 1.5rem; }
+  .pile__liste li {
+    display: flex; gap: 1rem; padding-block: 0.7rem;
+    border-bottom: 1px solid theme('colors.hair');
+    font-size: 0.95rem; line-height: 1.4; color: theme('colors.graphite');
+  }
+  .pile__liste span { color: theme('colors.bronze'); }
+
+  /* Sans épinglage possible — mouvement réduit — la pile redevient une
+     simple suite de blocs, ce qu'elle est déjà dans le flux. */
+  /* En mouvement réduit, `anim.ts` ne monte rien : les cartes restent une
+     simple suite de blocs, ce qu'elles sont déjà dans le flux. */
+</style>
+
+  <!-- Les équipements -->
+  <section class="section bg-sand">
+    <div class="container-x">
+      <SectionHead eyebrow="Les équipements" title="Tout est déjà là" class="mb-16" />
+      <div class="grid gap-x-12 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+        {AMENITIES.map((group) => (
+          <div class="border-t border-ink pt-6">
+            <h3 class="font-serif text-xl tracking-tight">{group.title}</h3>
+            <ul class="mt-5 space-y-2.5">
+              {group.items.map((it) => (
+                <li class="flex gap-3 text-[0.92rem] leading-snug text-muted">
+                  <span aria-hidden="true" class="text-bronze">·</span>{it}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Longs séjours -->
+  <section class="section bg-ink text-bone">
+    <div class="container-x grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
+      <div>
+        <span class="eyebrow !text-bronze-lt">À la semaine, au mois</span>
+        <h2 data-anim="lignes" class="h-xl mt-6 text-bone">Cures, missions, saisons.</h2>
+        <p class="lead mt-7 max-w-md !text-bone/80">
+          Le chalet se loue à la semaine, et les courts séjours restent possibles. Pour une
+          cure thermale de trois semaines, une mission ou une saison, les séjours de 28 nuits
+          et plus sont acceptés : un vrai bureau, le wifi haut débit et un lave-linge font du
+          chalet un lieu où l’on s’installe. Tarifs sur demande.
+        </p>
+        <a href="/contact" class="btn btn-light mt-9 w-fit">
+          Demander un tarif
+        </a>
+      </div>
+      <div data-anim="capsule" class="hover-zoom relative aspect-[4/3] overflow-hidden">
+        <Photo src="/images/chalet/bureau.webp" sizes="moitie" loading="lazy" decoding="async"
+               alt="Le coin bureau tout en pin, plan de travail jaune et carte du monde"
+               class="h-full w-full object-cover" />
+      </div>
+    </div>
+  </section>
+
+  <!-- Le séjour -->
+  <section class="section">
+    <div class="container-x grid gap-14 lg:grid-cols-[1fr_1fr] lg:gap-20">
+      <div>
+        <span class="eyebrow">Le séjour</span>
+        <h2 data-anim="lignes" class="h-lg mt-6">Ce qu’il faut savoir avant de venir.</h2>
+        <dl class="mt-9">
+          {[
+            ['Arrivée', VILLA.checkIn],
+            ['Départ', VILLA.checkOut],
+            ['Capacité', `${VILLA.guests} voyageurs`],
+            ['Couchage', 'Un lit double · un canapé convertible'],
+            ['Pièces', 'Une chambre · une salle d’eau · WC séparés'],
+            ['Surface', `${VILLA.surface} m² de plain-pied · terrasse et jardin`],
+            ['Stationnement', `${VILLA.parking} places privées et gratuites`],
+          ].map(([k, v]) => (
+            <div class="flex flex-wrap gap-x-6 gap-y-1 border-b border-hair py-3.5">
+              <dt class="min-w-[9rem] text-[0.72rem] uppercase tracking-[0.14em] text-muted">{k}</dt>
+              <dd class="flex-1 text-[0.96rem] text-graphite">{v}</dd>
+            </div>
+          ))}
+        </dl>
+      </div>
+      <div>
+        <span class="eyebrow">Le règlement</span>
+        <h2 data-anim="lignes" class="h-lg mt-6">La maison de quelqu’un d’autre.</h2>
+        <ul class="mt-9">
+          {RULES.map((r) => (
+            <li class="flex gap-4 border-b border-hair py-3.5 text-[0.95rem] leading-snug text-graphite">
+              <span aria-hidden="true" class="text-bronze">—</span>{r}
+            </li>
+          ))}
+        </ul>
+        <p class="mt-8 text-[0.88rem] leading-relaxed text-muted">
+          Vous séjournez chez un particulier : merci d’en prendre soin. Draps, serviettes,
+          savon, shampoing et papier toilette sont fournis.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Vers la galerie -->
+  <section class="section !pt-0">
+    <div class="container-x flex flex-wrap items-center justify-between gap-8 border-t border-hair pt-14">
+      <p class="lead max-w-md">{GALLERY.length} photographies du chalet, de l’allée au jardin.</p>
+      <div class="flex flex-wrap gap-4">
+        <a href="/galerie" class="btn btn-ghost">Voir la galerie</a>
+        <a href={VILLA.airbnb} target="_blank" rel="noopener" class="btn btn-primary">Réserver</a>
+      </div>
+    </div>
+  </section>
+</Layout>

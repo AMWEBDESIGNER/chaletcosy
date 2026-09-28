@@ -1,0 +1,150 @@
+---
+/* Bandeau de consentement.
+
+   La CNIL impose que refuser soit aussi simple qu'accepter : les deux
+   actions sont donc au même niveau, de même poids visuel, sans bouton
+   grisé ni case pré-cochée. Le choix est conservé six mois, et l'accès
+   pour en changer reste disponible en permanence depuis le pied de page.
+
+   Le site n'utilise aujourd'hui qu'un cookie strictement nécessaire (la
+   session). Ce bandeau prépare la mesure d'audience : rien n'est déposé
+   tant que le consentement n'est pas donné. */
+---
+<div id="consent" class="consent" hidden role="dialog" aria-modal="false"
+     aria-labelledby="consent-title" aria-describedby="consent-text">
+  <div class="consent-card">
+    <div class="consent-body">
+      <p class="eyebrow" id="consent-title">Votre confidentialité</p>
+      <p class="consent-text" id="consent-text">
+        Nous déposons uniquement les cookies nécessaires au fonctionnement du site.
+        Avec votre accord, nous mesurons aussi son audience pour l'améliorer —
+        de façon anonyme, sans publicité ni revente de données.
+      </p>
+      <a href="/confidentialite" class="consent-link">Politique de confidentialité</a>
+    </div>
+
+    <div class="consent-actions">
+      <button type="button" class="btn btn-ghost" data-consent="refuse">Continuer sans accepter</button>
+      <button type="button" class="btn btn-primary" data-consent="accept">Tout accepter</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  /* Un seul point de vérité pour l'état de consentement, lisible par les
+     futurs scripts de mesure : `window.__consent`. */
+  const KEY = 'ia-consent';
+  const MONTHS = 6;
+
+  type Choice = 'accept' | 'refuse';
+
+  const read = (): Choice | null => {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return null;
+      const { choice, at } = JSON.parse(raw);
+      const age = Date.now() - at;
+      if (age > MONTHS * 30 * 24 * 3600_000) return null; // expiré : on redemande
+      return choice === 'accept' || choice === 'refuse' ? choice : null;
+    } catch {
+      return null;
+    }
+  };
+
+  const write = (choice: Choice) => {
+    try {
+      localStorage.setItem(KEY, JSON.stringify({ choice, at: Date.now() }));
+    } catch {
+      /* navigation privée saturée : le bandeau réapparaîtra, c'est acceptable */
+    }
+  };
+
+  const apply = (choice: Choice) => {
+    (window as any).__consent = choice;
+    document.documentElement.dataset.consent = choice;
+    // Point d'accroche pour brancher plus tard une mesure d'audience.
+    window.dispatchEvent(new CustomEvent('ia:consent', { detail: choice }));
+  };
+
+  function init() {
+    const box = document.getElementById('consent');
+    if (!box) return;
+
+    const saved = read();
+    if (saved) { apply(saved); return; }
+
+    // On laisse la page se poser avant d'interrompre le visiteur.
+    const show = () => {
+      box.hidden = false;
+      requestAnimationFrame(() => box.classList.add('is-in'));
+    };
+    setTimeout(show, 900);
+
+    box.querySelectorAll<HTMLButtonElement>('[data-consent]').forEach((b) =>
+      b.addEventListener('click', () => {
+        const choice = b.dataset.consent as Choice;
+        write(choice);
+        apply(choice);
+        box.classList.remove('is-in');
+        box.addEventListener('transitionend', () => (box.hidden = true), { once: true });
+      }),
+    );
+  }
+
+  /* Rouvrir le bandeau depuis le pied de page ou la page confidentialité. */
+  document.addEventListener('click', (e) => {
+    const t = (e.target as HTMLElement)?.closest('[data-consent-open]');
+    if (!t) return;
+    e.preventDefault();
+    try { localStorage.removeItem(KEY); } catch {}
+    const box = document.getElementById('consent');
+    if (box) { box.hidden = false; requestAnimationFrame(() => box.classList.add('is-in')); }
+  });
+
+  document.addEventListener('astro:page-load', init);
+  init();
+</script>
+
+<style>
+  .consent {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 190;
+    padding: clamp(0.75rem, 2vw, 1.5rem);
+    display: flex; justify-content: center;
+    transform: translateY(120%);
+    transition: transform .7s var(--ease);
+  }
+  .consent.is-in { transform: none; }
+  .consent[hidden] { display: none; }
+
+  .consent-card {
+    width: min(62rem, 100%);
+    display: grid; gap: 1.25rem;
+    background: theme('colors.paper');
+    border: 1px solid theme('colors.hair');
+    box-shadow: 0 18px 50px -24px rgba(28, 42, 32, .35);
+    padding: clamp(1.25rem, 3vw, 1.75rem);
+  }
+  @media (min-width: 860px) {
+    .consent-card { grid-template-columns: 1fr auto; align-items: center; gap: 2.5rem; }
+  }
+
+  .consent-text {
+    margin-top: .7rem; max-width: 58ch;
+    font-size: .88rem; line-height: 1.65; color: theme('colors.graphite');
+  }
+  .consent-link {
+    display: inline-block; margin-top: .6rem;
+    font-size: .76rem; text-transform: uppercase; letter-spacing: .12em;
+    color: theme('colors.muted'); text-decoration: underline; text-underline-offset: 3px;
+  }
+  .consent-link:hover { color: theme('colors.ink'); }
+
+  /* Refuser et accepter ont exactement le même poids : c'est une exigence. */
+  .consent-actions { display: flex; flex-wrap: wrap; gap: .6rem; }
+  .consent-actions .btn { flex: 1 1 auto; white-space: nowrap; }
+  @media (min-width: 860px) { .consent-actions .btn { flex: 0 0 auto; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    .consent { transition: none; }
+  }
+</style>

@@ -1,0 +1,183 @@
+---
+export const prerender = false;
+
+import { connexion, poseJetons } from '../../lib/serveur/auth';
+import { config } from '../../lib/serveur/base';
+
+const runtime = (Astro.locals as any).runtime?.env;
+
+/**
+ * Où aller une fois entré.
+ *
+ * ⚠️ LA DESTINATION EST VÉRIFIÉE, PAS SUIVIE SUR PAROLE. Reprise telle
+ *    quelle, elle ferait de cette page une redirection ouverte :
+ *    `/admin/connexion?suite=https://ailleurs.exemple` enverrait une
+ *    personne connectée sur un site tiers, depuis une adresse qui est la
+ *    nôtre — c'est le socle d'un hameçonnage crédible.
+ *
+ * ⚠️ ON JUGE LE CHEMIN RÉSOLU, PAS LA CHAÎNE REÇUE. Deux façons de
+ *    tromper une comparaison littérale : `/administration-piege`, qui
+ *    commence bien par `/admin` sans être dans le back-office, et
+ *    `/admin/../contact`, qui y ressemble mais atterrit ailleurs. Passer
+ *    par `new URL` fait faire la résolution au navigateur plutôt qu'à
+ *    nous, puis l'on compare des SEGMENTS — `/admin` exactement, ou
+ *    quelque chose sous `/admin/`.
+ *
+ *    La base donnée à `new URL` est arbitraire et ne sert qu'à résoudre :
+ *    une adresse absolue (`https://ailleurs.exemple`) la remplace, son
+ *    `pathname` ne commencera donc pas par `/admin` et sera écartée —
+ *    tout comme `//ailleurs.exemple`, externe malgré sa barre initiale.
+ */
+function destination(brut: string | null): string {
+  if (!brut) return '/admin';
+  let chemin: string;
+  try {
+    chemin = new URL(brut, 'https://interne.invalid').pathname;
+  } catch {
+    return '/admin';
+  }
+  return chemin === '/admin' || chemin.startsWith('/admin/') ? chemin : '/admin';
+}
+
+const suite = destination(Astro.url.searchParams.get('suite'));
+let erreur = '';
+
+if (Astro.request.method === 'POST') {
+  const formulaire = await Astro.request.formData();
+  const email = String(formulaire.get('email') ?? '').trim();
+  const motDePasse = String(formulaire.get('motdepasse') ?? '');
+  const ou = destination(String(formulaire.get('suite') ?? '') || null);
+
+  if (!email || !motDePasse) {
+    erreur = 'Renseignez votre adresse et votre mot de passe.';
+  } else {
+    const tentative = await connexion(runtime, email, motDePasse);
+
+    if (tentative.jetons) {
+      /* Authentifié — reste à savoir si ce compte a le droit d'entrer.
+         Le contrôle du rôle appartient à `exigeAdmin()`, qui s'exécutera
+         sur la page d'arrivée : le refaire ici le dédoublerait, et deux
+         copies d'une règle de sécurité finissent toujours par diverger. */
+      poseJetons(Astro, tentative.jetons);
+      return Astro.redirect(ou);
+    }
+
+    erreur = tentative.echec === 'indisponible'
+      /* Ne pas dire « incorrect » quand on n'en sait rien : ce serait
+         envoyer quelqu'un chercher un mot de passe qui n'a rien perdu. */
+      ? 'Service d’authentification injoignable. Réessayez dans un instant.'
+      /* Un seul message pour « compte inconnu » et « mot de passe faux ».
+         Deux messages distincts diraient lesquelles de ces adresses
+         existent, et l'on aurait offert la moitié du travail. */
+      : 'Adresse ou mot de passe incorrect.';
+  }
+}
+
+/* Sans configuration, le formulaire ne pourrait qu'échouer : autant le
+   dire, plutôt que de laisser quelqu'un douter de son mot de passe. */
+const configure = Boolean(config(runtime)) && Boolean(
+  runtime?.SUPABASE_ANON_KEY ?? (import.meta.env as any)?.SUPABASE_ANON_KEY
+);
+---
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>Connexion — Administration Chalet Cosy</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #020946;
+      color: #26262c;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 1.5rem;
+      -webkit-font-smoothing: antialiased;
+    }
+    .boite { width: 100%; max-width: 380px; }
+    .entete { text-align: center; margin-bottom: 1.75rem; color: #fff; }
+    .entete h1 { font-size: 1.3rem; font-weight: 600; letter-spacing: 0.01em; }
+    .entete p { font-size: 0.88rem; color: #ecd1a9; margin-top: 0.3rem; }
+
+    form { background: #fff; border-radius: 10px; padding: 1.75rem; }
+    label {
+      display: block; font-size: 0.85rem; font-weight: 600;
+      color: #020946; margin-bottom: 0.35rem;
+    }
+    input {
+      width: 100%; padding: 0.65rem 0.8rem; font: inherit; font-size: 0.95rem;
+      border: 1px solid #d8d8e0; border-radius: 6px; background: #fcfcfd;
+      margin-bottom: 1.1rem; transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    input:focus {
+      outline: none; border-color: #020946; background: #fff;
+      box-shadow: 0 0 0 3px rgba(2, 9, 70, 0.09);
+    }
+    button {
+      width: 100%; padding: 0.7rem; font: inherit; font-size: 0.95rem;
+      font-weight: 600; color: #fff; background: #020946; cursor: pointer;
+      border: 0; border-radius: 6px; transition: opacity 0.15s;
+    }
+    button:hover { opacity: 0.9; }
+    button:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .erreur {
+      background: #fdeaea; color: #8c1d1d; border-left: 3px solid #c53030;
+      padding: 0.7rem 0.9rem; border-radius: 5px; font-size: 0.87rem;
+      margin-bottom: 1.1rem;
+    }
+    .avertissement {
+      background: #fdf7ec; color: #6b4d15; border-left: 3px solid #c08a2e;
+      padding: 0.7rem 0.9rem; border-radius: 5px; font-size: 0.85rem;
+      margin-bottom: 1.1rem;
+    }
+    .retour {
+      display: block; text-align: center; margin-top: 1.25rem;
+      color: rgba(255, 255, 255, 0.6); font-size: 0.85rem; text-decoration: none;
+    }
+    .retour:hover { color: #ecd1a9; }
+  </style>
+</head>
+<body>
+  <div class="boite">
+    <div class="entete">
+      <h1>Chalet Cosy</h1>
+      <p>Administration</p>
+    </div>
+
+    <form method="POST">
+      {erreur && <div class="erreur" role="alert">{erreur}</div>}
+
+      {!configure && (
+        <div class="avertissement">
+          Connexion à la base non configurée — voir <code>SUPABASE_URL</code>,
+          <code>SUPABASE_ANON_KEY</code> et <code>SUPABASE_SERVICE_KEY</code>.
+        </div>
+      )}
+
+      <input type="hidden" name="suite" value={suite} />
+
+      <label for="email">Adresse électronique</label>
+      <input
+        type="email" id="email" name="email"
+        autocomplete="username" required autofocus
+      />
+
+      <label for="motdepasse">Mot de passe</label>
+      <input
+        type="password" id="motdepasse" name="motdepasse"
+        autocomplete="current-password" required
+      />
+
+      <button type="submit" disabled={!configure}>Entrer</button>
+    </form>
+
+    <a href="/" class="retour">← Retour au site</a>
+  </div>
+</body>
+</html>

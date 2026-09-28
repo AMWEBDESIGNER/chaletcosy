@@ -1,0 +1,63 @@
+---
+export const prerender = false;
+
+import Layout from '../layouts/Layout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import { breadcrumb } from '../lib/seo';
+
+const trail: [string, string][] = [['Confirmation', '/confirmation']];
+const ref = Astro.url.searchParams.get('ref') || '';
+---
+<Layout title="Réservation confirmée — Chalet Cosy"
+        description="Votre réservation au Chalet Cosy est confirmée. Vérifiez votre messagerie pour les détails et les instructions."
+        noindex={true}>
+  <section class="container-x pt-32 pb-16">
+    <div class="max-w-2xl">
+      <Breadcrumb trail={trail} />
+      <h1 class="display mt-6">Réservation confirmée ✓</h1>
+      <p class="lead mt-7">
+        Votre paiement a été traité avec succès. Vous allez recevoir un courriel
+        de confirmation avec tous les détails de votre séjour.
+      </p>
+
+      {ref && (
+        <div class="mt-8 p-6 bg-sand border border-hair rounded">
+          <p class="text-sm text-muted mb-2">Référence de réservation</p>
+          <p class="font-mono text-lg tracking-wide">{ref}</p>
+          <p class="text-xs text-faint mt-2">Conservez ce numéro pour vos échanges avec notre équipe.</p>
+        </div>
+      )}
+
+      <div class="mt-12 grid gap-8 md:grid-cols-2">
+        <div class="border-t border-hair pt-6">
+          <h2 class="font-serif text-lg">Prochaines étapes</h2>
+          <ul class="mt-4 space-y-3 text-sm leading-relaxed">
+            <li>✓ Confirmation par courriel sous quelques minutes</li>
+            <li>✓ Instructions d'accès 7 jours avant votre arrivée</li>
+            <li>✓ Contact direct avec notre conciergerie le jour du séjour</li>
+          </ul>
+        </div>
+
+        <div class="border-t border-hair pt-6">
+          <h2 class="font-serif text-lg">Besoin d'aide&nbsp;?</h2>
+          <p class="mt-4 text-sm leading-relaxed text-muted">
+            Notre équipe est joignable 7 j/7 de 9h à 23h durant votre séjour.
+            N'hésitez pas à nous contacter pour toute question.
+          </p>
+          <a href="/contact" class="link-arrow mt-4 inline-flex items-center">
+            Nous contacter
+            <svg width="22" height="8" viewBox="0 0 22 8" fill="none" aria-hidden="true"><path d="M0 4h20M17 1l3 3-3 3" stroke="currentColor" stroke-width="1"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <div class="mt-12 pt-8 border-t border-hair">
+        <a href="/" class="btn btn-ghost">Retour à l'accueil</a>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .font-mono { font-family: 'Courier New', monospace; }
+</style>

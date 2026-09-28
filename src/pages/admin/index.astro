@@ -1,0 +1,101 @@
+---
+export const prerender = false;
+
+import Admin from '../../layouts/Admin.astro';
+import { exigeAdmin } from '../../lib/serveur/auth';
+import { config, lis, bornes } from '../../lib/serveur/base';
+
+const garde = await exigeAdmin(Astro);
+if (garde.refus) return garde.refus;
+
+const c = config((Astro.locals as any).runtime?.env)!;
+const aujourdhui = new Date().toISOString().slice(0, 10);
+
+/* Un séjour « à venir » est un séjour dont le DÉPART n'est pas passé :
+   une famille arrivée hier et repartant demain est toujours dans la
+   maison. Se caler sur l'arrivée la ferait disparaître du tableau au
+   moment précis où elle a le plus besoin d'y être. */
+let occupations: any[] = [];
+let erreur = '';
+try {
+  occupations = await lis(c, `occupations?select=statut,periode,total_cents&order=periode.asc`);
+} catch (e) {
+  erreur = 'Lecture des réservations impossible.';
+  console.error('[admin] tableau de bord', e);
+}
+
+const aVenir = occupations.filter((o) => {
+  if (o.statut !== 'option' && o.statut !== 'confirme') return false;
+  const b = bornes(o.periode);
+  return b !== null && b.fin >= aujourdhui;
+});
+
+const enOption = aVenir.filter((o) => o.statut === 'option').length;
+const confirmees = aVenir.filter((o) => o.statut === 'confirme').length;
+
+/* Le chiffre engagé ne compte QUE le confirmé. Une option n'est pas une
+   vente : la compter gonflerait un total qui redescendrait tout seul à la
+   première péremption. */
+const engage = aVenir
+  .filter((o) => o.statut === 'confirme')
+  .reduce((somme, o) => somme + (o.total_cents ?? 0), 0);
+
+const euros = new Intl.NumberFormat('fr-FR', {
+  style: 'currency', currency: 'EUR', maximumFractionDigits: 0,
+});
+---
+<Admin
+  titre="Tableau de bord"
+  email={garde.session.email}
+  sous_titre="Vue d’ensemble des séjours à venir"
+>
+  {erreur && <div class="note attention">{erreur}</div>}
+
+  <div class="chiffres">
+    <div class="chiffre">
+      <div class="n">{confirmees}</div>
+      <div class="l">Séjours confirmés</div>
+    </div>
+    <div class="chiffre">
+      <div class="n">{enOption}</div>
+      <div class="l">Options en attente</div>
+    </div>
+    <div class="chiffre">
+      <div class="n">{euros.format(engage / 100)}</div>
+      <div class="l">Engagé (confirmé)</div>
+    </div>
+    <div class="chiffre">
+      <div class="n">{occupations.length}</div>
+      <div class="l">Occupations au total</div>
+    </div>
+  </div>
+
+  <div class="carte">
+    <h2>Synchronisation Airbnb</h2>
+    <p style="color:#6b6b76;font-size:0.9rem;margin-bottom:1rem">
+      Les nuits vendues ici et celles vendues sur Airbnb occupent le même chalet.
+      Ces deux adresses les tiennent alignées.
+    </p>
+    <table>
+      <thead>
+        <tr><th>Sens</th><th>Adresse</th><th>Usage</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Sortant</strong></td>
+          <td><code>/api/ical-export</code></td>
+          <td>À coller dans Airbnb, qui viendra le lire.</td>
+        </tr>
+        <tr>
+          <td><strong>Entrant</strong></td>
+          <td><code>/api/ical-import</code></td>
+          <td>Reçoit le calendrier d’Airbnb. Protégé par <code>ICAL_IMPORT_SECRET</code>.</td>
+        </tr>
+      </tbody>
+    </table>
+    <div class="note">
+      L’import est <strong>idempotent</strong> : un blocage déjà connu est reconnu à son
+      UID et n’est pas dupliqué. On peut donc rejouer la synchronisation sans risque.
+    </div>
+  </div>
+</Admin>

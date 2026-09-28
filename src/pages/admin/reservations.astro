@@ -1,0 +1,135 @@
+---
+export const prerender = false;
+
+import Admin from '../../layouts/Admin.astro';
+import { exigeAdmin } from '../../lib/serveur/auth';
+import { config, lis, bornes } from '../../lib/serveur/base';
+
+const garde = await exigeAdmin(Astro);
+if (garde.refus) return garde.refus;
+
+const c = config((Astro.locals as any).runtime?.env)!;
+
+let occupations: any[] = [];
+let erreur = '';
+try {
+  occupations = await lis(
+    c,
+    'occupations?select=reference,periode,origine,statut,voyageurs,nom,email,' +
+      'telephone,total_cents,acompte_cents,cree_le&order=cree_le.desc&limit=500',
+  );
+} catch (e) {
+  erreur = 'Lecture des réservations impossible.';
+  console.error('[admin] réservations', e);
+}
+
+const STATUTS: Record<string, { pastille: string; libelle: string; teinte: string }> = {
+  option:   { pastille: '◷', libelle: 'Option',    teinte: '#8a6d1f' },
+  confirme: { pastille: '●', libelle: 'Confirmée', teinte: '#1d6b3a' },
+  annule:   { pastille: '×', libelle: 'Annulée',   teinte: '#8c1d1d' },
+  expire:   { pastille: '○', libelle: 'Expirée',   teinte: '#6b6b76' },
+};
+
+const ORIGINES: Record<string, string> = {
+  site: 'Site', airbnb: 'Airbnb', manuel: 'Manuel',
+};
+
+const euros = new Intl.NumberFormat('fr-FR', {
+  style: 'currency', currency: 'EUR', maximumFractionDigits: 0,
+});
+
+const jour = (iso: string) =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString('fr-FR', {
+    day: 'numeric', month: 'short', year: '2-digit', timeZone: 'UTC',
+  });
+
+/** Nombre de nuits. La fin étant exclue, la soustraction donne le compte juste. */
+const nuits = (debut: string, fin: string) =>
+  Math.round((Date.parse(`${fin}T00:00:00Z`) - Date.parse(`${debut}T00:00:00Z`)) / 86_400_000);
+
+const compte = (s: string) => occupations.filter((o) => o.statut === s).length;
+---
+<Admin
+  titre="Réservations"
+  email={garde.session.email}
+  sous_titre={`${occupations.length} occupation${occupations.length > 1 ? 's' : ''}, la plus récente en premier`}
+>
+  {erreur && <div class="note attention">{erreur}</div>}
+
+  <div class="chiffres">
+    <div class="chiffre"><div class="n">{compte('confirme')}</div><div class="l">Confirmées</div></div>
+    <div class="chiffre"><div class="n">{compte('option')}</div><div class="l">Options</div></div>
+    <div class="chiffre"><div class="n">{compte('expire')}</div><div class="l">Expirées</div></div>
+    <div class="chiffre"><div class="n">{compte('annule')}</div><div class="l">Annulées</div></div>
+  </div>
+
+  <div class="carte" style="padding:0">
+    <div class="defile">
+      <table>
+        <thead>
+          <tr>
+            <th>Référence</th>
+            <th>Client</th>
+            <th>Séjour</th>
+            <th>Voy.</th>
+            <th>Origine</th>
+            <th>Statut</th>
+            <th style="text-align:right">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {occupations.length === 0 ? (
+            <tr><td colspan="7" class="vide">Aucune réservation pour l’instant.</td></tr>
+          ) : (
+            occupations.map((o) => {
+              const b = bornes(o.periode);
+              const s = STATUTS[o.statut] ?? { pastille: '?', libelle: o.statut, teinte: '#6b6b76' };
+              return (
+                <tr>
+                  <td style="font-family:ui-monospace,monospace;font-size:0.84rem">
+                    {o.reference ?? <span style="color:#a0a0aa">—</span>}
+                  </td>
+                  <td>
+                    {o.nom
+                      ? <><div style="font-weight:500">{o.nom}</div>
+                          <div style="color:#6b6b76;font-size:0.82rem">{o.email}</div></>
+                      : <span style="color:#a0a0aa">Blocage</span>}
+                  </td>
+                  <td>
+                    {b
+                      ? <><div>{jour(b.debut)} → {jour(b.fin)}</div>
+                          <div style="color:#6b6b76;font-size:0.82rem">
+                            {nuits(b.debut, b.fin)} nuit{nuits(b.debut, b.fin) > 1 ? 's' : ''}
+                          </div></>
+                      : <span style="color:#a0a0aa">{o.periode}</span>}
+                  </td>
+                  <td>{o.voyageurs ?? '—'}</td>
+                  <td>{ORIGINES[o.origine] ?? o.origine}</td>
+                  <td style={`color:${s.teinte};white-space:nowrap`}>
+                    <span aria-hidden="true">{s.pastille}</span> {s.libelle}
+                  </td>
+                  <td style="text-align:right;white-space:nowrap">
+                    {o.total_cents != null
+                      ? <><div style="font-weight:500">{euros.format(o.total_cents / 100)}</div>
+                          {o.acompte_cents != null && (
+                            <div style="color:#6b6b76;font-size:0.82rem">
+                              acompte {euros.format(o.acompte_cents / 100)}
+                            </div>
+                          )}</>
+                      : <span style="color:#a0a0aa">—</span>}
+                  </td>
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="note">
+    Les dates s’entendent <strong>départ exclu</strong> : un séjour du 10 au 14 occupe
+    quatre nuits et laisse le 14 libre pour l’arrivée suivante. Le nombre de nuits affiché
+    suit cette règle.
+  </div>
+</Admin>

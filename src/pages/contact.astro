@@ -1,0 +1,146 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import { VILLA, mapUrl } from '../lib/villa';
+import { AGENCY } from '../lib/legal';
+import { breadcrumb } from '../lib/seo';
+
+/* Un seul littéral : le fil visible et son balisage disent le même chemin. */
+const trail: [string, string][] = [['Contact', '/contact']];
+---
+<Layout title="Contact — demander les disponibilités du chalet à Digne"
+        description="Vos dates, votre projet : cure thermale, vacances, randonnée ou séjour de travail à Digne-les-Bains. Réponse personnelle sous 24 heures. Chalet Cosy."
+        image="/images/chalet/terrasse-table.webp"
+        imageAlt="La terrasse en bois du chalet et ses chaises vertes face à la montagne"
+        jsonLd={breadcrumb(Astro.site, trail)}>
+  <section data-hero class="container-x pt-32">
+    <div class="max-w-3xl">
+      <Breadcrumb trail={trail} />
+      <span class="eyebrow">Contact</span>
+      <h1 class="display mt-6 !text-[clamp(2.3rem,5.6vw,4.6rem)]">
+        <span data-anim="lignes" class="block">Parlons de</span>
+        <span class="block">votre <span class="script script--accent">séjour</span></span>
+      </h1>
+      <p class="lead mt-7 max-w-xl">
+        Une cure, des vacances en couple ou en famille, une semaine de randonnée, une mission
+        de travail. Dites-nous vos dates et ce que vous cherchez : nous vous répondons
+        personnellement sous 24 heures.
+      </p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container-x grid gap-14 lg:grid-cols-2 lg:gap-20">
+      <!-- Le formulaire -->
+      <div class="bg-ink p-8 text-bone md:p-12">
+        <h2 class="font-serif text-2xl tracking-tight">Écrivez-nous</h2>
+        <form data-form data-subject="Demande — Chalet Cosy" class="mt-8 grid gap-6">
+          <div class="grid gap-6 sm:grid-cols-2">
+            <label class="field field--dark"><span>Nom</span><input name="Nom" autocomplete="name" required /></label>
+            <label class="field field--dark"><span>Téléphone</span><input name="Téléphone" type="tel" autocomplete="tel" /></label>
+          </div>
+          <label class="field field--dark"><span>E-mail</span><input name="E-mail" type="email" autocomplete="email" required /></label>
+
+          <div class="grid gap-6 sm:grid-cols-2">
+            <label class="field field--dark"><span>Arrivée souhaitée</span><input name="Arrivée" type="date" /></label>
+            <label class="field field--dark"><span>Départ souhaité</span><input name="Départ" type="date" /></label>
+          </div>
+
+          <div class="grid gap-6 sm:grid-cols-2">
+            <label class="field field--dark"><span>Voyageurs</span>
+              <select name="Voyageurs">
+                {Array.from({ length: VILLA.guests }, (_, i) => i + 1).map((n) => (
+                  <option class="text-ink">{n}</option>
+                ))}
+              </select>
+            </label>
+            <label class="field field--dark"><span>Motif du séjour</span>
+              <select name="Motif">
+                <option class="text-ink">Vacances</option>
+                <option class="text-ink">Cure thermale</option>
+                <option class="text-ink">Randonnée / vélo</option>
+                <option class="text-ink">Séjour de travail</option>
+                <option class="text-ink">Long séjour (28 nuits et plus)</option>
+                <option class="text-ink">Autre</option>
+              </select>
+            </label>
+          </div>
+
+          <label class="field field--dark">
+            <span>Votre message</span>
+            <textarea name="Message" rows="3" placeholder="Qui vous accompagne, ce que vous cherchez…"></textarea>
+          </label>
+          <button class="btn btn-light mt-2 w-full">Envoyer ma demande</button>
+        </form>
+        <p class="mt-5 text-[0.78rem] leading-relaxed text-bone/55">
+          Vos coordonnées servent uniquement à répondre à cette demande. Elles ne sont
+          ni revendues ni utilisées à d’autres fins.
+        </p>
+      </div>
+
+      <!-- Les informations -->
+      <div class="grid content-start">
+        <div class="border-t border-hair py-7">
+          <h2 class="font-serif text-xl tracking-tight">Réserver directement</h2>
+          <p class="mt-2 text-sm leading-relaxed text-muted">
+            Le calendrier à jour, les tarifs et la réservation en ligne se trouvent sur
+            l’annonce du chalet.
+          </p>
+          <a href={VILLA.airbnb} target="_blank" rel="noopener" class="link-arrow mt-4">
+            Voir les disponibilités
+            <svg width="22" height="8" viewBox="0 0 22 8" fill="none" aria-hidden="true"><path d="M0 4h20M17 1l3 3-3 3" stroke="currentColor" stroke-width="1"/></svg>
+          </a>
+        </div>
+
+        <div class="border-t border-hair py-7">
+          <h2 class="font-serif text-xl tracking-tight">Nous joindre</h2>
+          <div class="mt-3 flex flex-wrap gap-x-8 gap-y-1.5 text-sm">
+            <a href={`mailto:${AGENCY.email}`} class="ul-link hover:text-bronze-dk">{AGENCY.email}</a>
+            <a href={AGENCY.phoneHref} class="ul-link hover:text-bronze-dk">{AGENCY.phone}</a>
+          </div>
+          <p class="mt-3 text-sm text-muted">
+            Location à la semaine, courts séjours possibles. Tarifs sur demande.
+          </p>
+        </div>
+
+        <div class="border-t border-hair py-7">
+          <h2 class="font-serif text-xl tracking-tight">Où se trouve le chalet</h2>
+          <p class="mt-2 text-sm leading-relaxed text-muted">
+            À {VILLA.city}, au pied de la montagne, près du Musée Promenade du Géoparc
+            de Haute-Provence. À deux pas du centre-ville, à quelques minutes des thermes.
+          </p>
+          <p class="mt-3 text-sm text-faint">
+            L’adresse exacte vous est communiquée à la confirmation de la réservation.
+          </p>
+        </div>
+
+        <div class="border-t border-hair py-7 last:border-b">
+          <h2 class="font-serif text-xl tracking-tight">Le chalet en bref</h2>
+          <dl class="mt-4">
+            {[
+              ['Capacité', `${VILLA.guests} voyageurs`],
+              ['Couchage', 'Lit double · canapé convertible'],
+              ['Surface', `${VILLA.surface} m² de plain-pied · jardin`],
+              ['Arrivée / départ', `${VILLA.checkIn} · ${VILLA.checkOut}`],
+              ['Suppléments', `${VILLA.extraGuestFee} €/nuit au-delà de ${VILLA.extraGuestFrom} voyageurs · ménage ${VILLA.cleaningFee} € en option`],
+            ].map(([k, v]) => (
+              <div class="flex flex-wrap gap-x-5 gap-y-0.5 border-b border-hair/60 py-2.5 last:border-0">
+                <dt class="min-w-[8.5rem] text-[0.72rem] uppercase tracking-[0.12em] text-muted">{k}</dt>
+                <dd class="flex-1 text-[0.92rem] text-graphite">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- La carte -->
+  <section class="container-x pb-[var(--section)]">
+    <div data-anim="capsule" class="overflow-hidden border border-hair bg-sand">
+      <iframe title="Carte de Digne-les-Bains et de ses environs" class="h-[380px] w-full border-0 md:h-[440px]" loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              src={mapUrl()}></iframe>
+    </div>
+  </section>
+</Layout>

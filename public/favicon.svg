@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Chalet Cosy">
+  <rect width="64" height="64" fill="#1C2A20"/>
+  <g fill="none" stroke="#E6C590" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M6 33 L32 12 L58 33"/>
+    <path d="M13 29 V52 H51 V29"/>
+    <path d="M27 52 V40 H37 V52"/>
+  </g>
+</svg>

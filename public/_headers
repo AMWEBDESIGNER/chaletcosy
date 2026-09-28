@@ -1,0 +1,28 @@
+# En-têtes servis par Cloudflare Pages.
+# La vitesse de chargement compte dans le classement : tout ce qui ne change
+# jamais doit être mis en cache une fois pour toutes.
+
+# Polices et images : leur nom ne bouge pas, mais leur contenu non plus.
+# Un an de cache, révisable en renommant le fichier.
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+  Access-Control-Allow-Origin: *
+
+/images/*
+  Cache-Control: public, max-age=2592000
+
+# Astro empreinte ces fichiers d'un hachage : un changement crée un nouveau nom.
+/_astro/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# `_routes.json` exclut toutes les pages prérendues du Worker : `src/middleware.ts`
+# ne les voit jamais. Les en-têtes de sécurité des pages se posent donc ici, et
+# nulle part ailleurs — le middleware ne couvre que `/api/*` et `/robots.txt`.
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: SAMEORIGIN
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  # Sans `includeSubDomains` : le jour où un sous-domaine servira autre chose,
+  # la directive ne doit pas le rendre injoignable.
+  Strict-Transport-Security: max-age=31536000

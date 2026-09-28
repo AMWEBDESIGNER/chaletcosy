@@ -1,0 +1,106 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { breadcrumb } from '../lib/seo';
+import { AGENCY, fullAddress } from '../lib/legal';
+import { VILLA } from '../lib/villa';
+import { CREDITS } from '../lib/credits';
+
+const A = AGENCY;
+
+/* Une location saisonnière n'est pas une agence : ni carte
+   professionnelle, ni garantie financière à afficher. Ce qui est
+   dû, en revanche : l'identification de l'éditeur, le numéro
+   d'enregistrement du meublé et la voie de médiation. */
+const sections: { t: string; c?: string; rows?: [string, string][] }[] = [
+  {
+    t: 'Éditeur du site',
+    rows: [
+      ['Dénomination', `${A.name} — ${A.legalForm}`],
+      ['Siège', `${fullAddress()}, ${A.country}`],
+      ['SIRET', A.siret],
+      ['TVA intracommunautaire', A.vat],
+      ['Directeur de la publication', A.director],
+      ['Courriel', A.email],
+    ],
+  },
+  {
+    t: 'Le logement',
+    c: "Chalet Cosy est un chalet proposé à la location saisonnière meublée. Elle n'est pas mise en vente, et l'éditeur du site n'exerce aucune activité d'entremise immobilière au sens de la loi n° 70-9 du 2 janvier 1970.",
+    rows: [
+      ['Nature', 'Meublé de tourisme — logement entier'],
+      ['Commune', `${VILLA.city} (${VILLA.postalCode})`],
+      ['Numéro d’enregistrement', A.registration.number],
+      ['Enregistré auprès de', A.registration.issuer],
+      ['Capacité', `${VILLA.guests} voyageurs`],
+    ],
+  },
+  {
+    t: 'Réservation et tarifs',
+    c: "Les disponibilités, les tarifs et les conditions d'annulation figurent sur l'annonce du chalet, seule source à jour. Aucune réservation ni aucun paiement ne sont réalisés depuis ce site : les formulaires servent uniquement à prendre contact.",
+  },
+  {
+    t: 'Médiation de la consommation',
+    c: "Conformément à l'article L.612-1 du code de la consommation, tout client peut recourir gratuitement à un médiateur de la consommation en cas de litige non résolu par une réclamation écrite préalable.",
+    rows: [
+      ['Médiateur', A.mediator.name],
+      ['Adresse', A.mediator.address],
+      ['Information', A.mediator.url],
+    ],
+  },
+  {
+    t: 'Hébergement du site',
+    c: `Ce site est hébergé par ${A.hosting.name}, ${A.hosting.address}.`,
+  },
+  {
+    t: 'Conception et réalisation',
+    c: `Ce site a été conçu et réalisé par ${A.agencyWeb.name} — ${A.agencyWeb.address}.`,
+  },
+  {
+    t: 'Propriété intellectuelle',
+    c: "L'ensemble des contenus — textes, photographies, identité visuelle, mise en page — est protégé. Les photographies du chalet et de son jardin sont la propriété du propriétaire du bien. Les photographies de Digne-les-Bains et de ses environs proviennent de Wikimedia Commons ; leurs auteurs et licences sont indiqués ci-dessous. Toute reproduction, même partielle, est interdite sans autorisation écrite.",
+  },
+  {
+    t: 'Crédits photographiques',
+    c: "Photographies de Digne-les-Bains et de ses environs, publiées sous licence libre sur Wikimedia Commons :",
+    rows: CREDITS.map((c) => [c.subject, `${c.author} — ${c.license}`] as [string, string]),
+  },
+  {
+    t: 'Responsabilité',
+    c: `Les informations relatives au logement, à ses équipements et à ses abords sont fournies à titre indicatif. Les surfaces, distances et descriptifs sont communiqués sous réserve d'erreur ou d'omission. ${A.name} s'efforce d'en assurer l'exactitude et la mise à jour.`,
+  },
+];
+---
+<Layout title="Mentions légales — Chalet Cosy, location à Digne-les-Bains"
+        description="Éditeur du site, hébergeur, numéro d’enregistrement du meublé de tourisme, médiation de la consommation et propriété intellectuelle. Chalet Cosy."
+        jsonLd={breadcrumb(Astro.site, [['Mentions légales', '/mentions-legales']])}>
+  <section class="container-x section">
+    <div class="max-w-prose">
+      <span class="eyebrow">Informations</span>
+      <h1 data-anim="lignes" class="h-xl mt-6">Mentions légales</h1>
+      <p class="mt-3 text-[0.78rem] uppercase tracking-[0.12em] text-faint">Dernière mise à jour : septembre 2026</p>
+    </div>
+
+    <div class="mt-14 max-w-prose space-y-12">
+      {sections.map((s) => (
+        <div class="border-t border-hair pt-6">
+          <h2 class="font-serif text-xl tracking-tight">{s.t}</h2>
+          {s.c && <p class="prose-body mt-3">{s.c}</p>}
+          {s.rows && (
+            <dl class="mt-4 space-y-0">
+              {s.rows.map(([k, v]) => (
+                <div class="flex flex-wrap gap-x-4 gap-y-0.5 border-b border-hair/60 py-2.5 last:border-0">
+                  <dt class="min-w-[13rem] text-[0.76rem] uppercase tracking-[0.1em] text-muted">{k}</dt>
+                  <dd class="flex-1 text-[0.94rem] text-graphite">
+                    {v.startsWith('http')
+                      ? <a href={v} class="ul-link" target="_blank" rel="noopener">{v.replace(/^https?:\/\//, '')}</a>
+                      : v}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
+        </div>
+      ))}
+    </div>
+  </section>
+</Layout>

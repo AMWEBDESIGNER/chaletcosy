@@ -1,0 +1,115 @@
+---
+/* ============================================================
+   Une photographie, dans la définition que réclame l'écran.
+
+   Les fichiers d'origine font 1200 px de large. Servis tels quels, ils
+   partaient identiques vers un 27 pouces et vers un téléphone qui n'en
+   affiche que 390 — jusqu'à cinq fois trop de pixels. Ce composant décline
+   `srcset` et laisse le navigateur choisir, à partir des variantes que
+   `tools/build-images.mjs` a produites et inscrites dans `images.json`.
+
+   L'AVIF passe en premier : il pèse ~37 % de moins que le WebP à qualité
+   perçue égale, mesuré sur ce lot. Le WebP suit, puis le fichier d'origine
+   en `<img>` — que les navigateurs sans `<picture>` prennent, et que lisent
+   aussi les scripts qui interrogent `img.src` (la visionneuse, la scène).
+
+   Une image absente du manifeste sort sans `<source>` : le rendu tient,
+   mais ni déclinaisons ni dimensions natives — donc plus rien pour réserver
+   la place. Le build le signale plutôt que de le laisser passer.
+   ============================================================ */
+import manifest from '../lib/images.json';
+
+/* Les six situations du site. La largeur du conteneur est plafonnée à
+   1240 px et ses marges valent `clamp(1.25rem, 5vw, 4.5rem)` — voir
+   `.container-x` dans `global.css`. Au-delà de cette borne une image ne
+   grandit plus, et l'annoncer en `vw` ferait choisir au navigateur une
+   définition qu'il n'utilisera jamais.
+
+   Ces chiffres doublent bien ceux du CSS, et c'est irréductible : `sizes`
+   est lu par le préchargeur avant toute feuille de style — il n'admet donc
+   ni `var()` ni `theme()`. */
+const SIZES = {
+  /** Bord à bord : hero, scène, fonds en parallaxe. */
+  pleine: '100vw',
+  /** Pleine largeur du conteneur : panorama, bandeau. */
+  article: '(min-width: 1240px) 1100px, 92vw',
+  /** Deux tiers de la largeur : la grande image d'un bandeau 8/12. */
+  'deux-tiers': '(min-width: 1240px) 730px, (min-width: 768px) 62vw, 92vw',
+  /** Deux colonnes sur grand écran. */
+  moitie: '(min-width: 1240px) 540px, (min-width: 1024px) 48vw, 92vw',
+  /** Trois colonnes sur grand écran, deux en tablette, une au téléphone. */
+  tiers: '(min-width: 1240px) 360px, (min-width: 1024px) 30vw, (min-width: 640px) 45vw, 90vw',
+  /** Petite vignette de taille fixe. */
+  vignette: '320px',
+} as const;
+
+interface Props {
+  /** Chemin du fichier d'origine, tel qu'il figure dans `villa.ts`. */
+  src: string;
+  alt: string;
+  /** Un des cas ci-dessus, ou une valeur `sizes` écrite à la main. */
+  sizes?: keyof typeof SIZES | (string & {});
+  loading?: 'lazy' | 'eager';
+  decoding?: 'async' | 'sync' | 'auto';
+  fetchpriority?: 'high' | 'low' | 'auto';
+  /** Dimensions natives par défaut — à ne surcharger qu'à bon escient. */
+  width?: number;
+  height?: number;
+  class?: string;
+  /** Retient le chargement jusqu'à `promote()` — voir `scripts/photo.ts`. */
+  deferred?: boolean;
+}
+
+const {
+  src, alt, sizes = 'article',
+  loading, decoding = 'async', fetchpriority,
+  width, height, class: cls, deferred = false,
+  ...rest
+} = Astro.props;
+
+interface Entry { stem: string; w: number; h: number; webp: number[]; avif: number[] }
+const entry = (manifest as Record<string, Entry>)[src];
+const sizesAttr = SIZES[sizes as keyof typeof SIZES] ?? sizes;
+
+/* Le repli rend l'image, mais sans dimensions natives : la place n'est plus
+   réservée, et le texte sous elle saute à l'arrivée. Autant le dire au build
+   plutôt que de le laisser découvrir au champ. */
+if (!entry) {
+  console.warn(
+    `[Photo] ${src} est absent de images.json : ni déclinaisons, ni width/height. ` +
+      `Le fichier est-il bien sous public/images/chalet ou public/images/digne ? ` +
+      `Sinon, passez width et height à la main.`,
+  );
+}
+
+/* Le radical des déclinaisons vient du manifeste, jamais d'une transformation
+   refaite ici : c'est le script qui nomme ses fichiers, lui seul sait où il
+   les a écrits. Déplacer le dossier de sortie ne peut donc plus laisser
+   derrière lui des `srcset` qui pointent dans le vide. */
+const set = (widths: number[], ext: string, origin?: number) =>
+  [
+    ...widths.map((w) => `${entry.stem}-${w}.${ext} ${w}w`),
+    ...(origin ? [`${src} ${origin}w`] : []),
+  ].join(', ');
+
+/* Différé : le nom de l'attribut passe en `data-`, et `promote()` le rétablit
+   au moment voulu. Un seul endroit décide, pour les sources comme pour l'image. */
+const held = (name: string, value: string) => ({ [deferred ? `data-${name}` : name]: value });
+
+const w = width ?? entry?.w;
+const h = height ?? entry?.h;
+---
+{/* `<picture>` est posé même sans déclinaisons : `display: contents` le rend
+    transparent à la mise en page, donc il ne coûte rien, et l'image n'a
+    qu'une seule écriture au lieu de deux branches jumelles à tenir. */}
+<picture>
+  {entry && (
+    <>
+      <source type="image/avif" sizes={sizesAttr} {...held('srcset', set(entry.avif, 'avif'))} />
+      <source type="image/webp" sizes={sizesAttr} {...held('srcset', set(entry.webp, 'webp', entry.w))} />
+    </>
+  )}
+  <img {...held('src', src)} alt={alt} width={w} height={h}
+       loading={loading} decoding={decoding} fetchpriority={fetchpriority}
+       class={cls} {...rest} />
+</picture>

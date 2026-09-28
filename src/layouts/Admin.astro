@@ -1,0 +1,183 @@
+---
+/* ============================================================
+   Le cadre des pages d'administration.
+
+   Volontairement SÉPARÉ de `Layout.astro`, qui sert le site public. Ce
+   dernier embarque GSAP, ScrollSmoother, le rideau d'ouverture et les
+   polices maison — cent cinquante kilo-octets de mouvement, au service
+   d'une page qui donne envie. Un back-office ne donne envie de rien : il
+   affiche un tableau, vite, et n'a besoin d'aucun de ces outils.
+
+   Il ne porte pas non plus de balise d'indexation, et pour cause : les
+   pages qui l'utilisent répondent une redirection à quiconque n'est pas
+   connecté. C'est `robots` en `noindex` qui le dit tout de même, parce
+   qu'une adresse d'administration citée dans un lien n'a rien à faire
+   dans un index.
+   ============================================================ */
+interface Props {
+  titre: string;
+  /** Courriel de la personne connectée, affiché en tête. */
+  email: string;
+  /** Fil d'Ariane facultatif, sous le titre. */
+  sous_titre?: string;
+}
+
+const { titre, email, sous_titre } = Astro.props;
+const ici = Astro.url.pathname;
+
+const ONGLETS = [
+  { href: '/admin', libelle: 'Tableau de bord' },
+  { href: '/admin/reservations', libelle: 'Réservations' },
+  { href: '/admin/parametres', libelle: 'Paramètres' },
+  { href: '/admin/journal', libelle: 'Journal' },
+];
+---
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex, nofollow" />
+  <title>{titre} — Administration Chalet Cosy</title>
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+  <!--
+    ⚠️ `is:global` EST NÉCESSAIRE, PAS UNE FACILITÉ. Astro limite un
+       `<style>` aux éléments présents dans CE gabarit, en leur posant un
+       attribut de portée. Les pages qui arrivent par le `<slot />` ne le
+       portent pas : `.carte`, `.chiffres` et `.note` sortaient donc sans
+       aucun style, tableaux nus et cartes invisibles, alors que la barre
+       de navigation — écrite ici — s'affichait bien. C'est ce que
+       montrait la première capture.
+
+       Le global ne déborde pas : ce gabarit sert le document entier des
+       seules pages d'administration, qui n'ont aucune feuille commune
+       avec le site public.
+  -->
+  <style is:global>
+    :root {
+      --nuit: #020946;
+      --or: #ecd1a9;
+      --fond: #f4f4f6;
+      --bord: #e3e3e8;
+      --texte: #26262c;
+      --gris: #6b6b76;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--fond);
+      color: var(--texte);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---- L'en-tête ---- */
+    .barre { background: var(--nuit); color: #fff; }
+    .barre-haut {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 1rem; flex-wrap: wrap;
+      max-width: 1400px; margin: 0 auto; padding: 1.1rem 2rem 0.9rem;
+    }
+    .marque { font-size: 1.05rem; font-weight: 600; letter-spacing: 0.02em; }
+    .marque span { color: var(--or); font-weight: 400; }
+    .qui { display: flex; align-items: center; gap: 1rem; font-size: 0.85rem; }
+    .qui .mail { opacity: 0.75; }
+    .quitter {
+      background: transparent; color: var(--or); cursor: pointer;
+      border: 1px solid rgba(236, 209, 169, 0.4); border-radius: 4px;
+      padding: 0.3rem 0.8rem; font: inherit; font-size: 0.85rem;
+      transition: background 0.15s, border-color 0.15s;
+    }
+    .quitter:hover { background: rgba(236, 209, 169, 0.12); border-color: var(--or); }
+
+    /* ---- Les onglets ---- */
+    nav.onglets {
+      max-width: 1400px; margin: 0 auto; padding: 0 2rem;
+      display: flex; gap: 0.25rem; overflow-x: auto;
+    }
+    nav.onglets a {
+      color: rgba(255, 255, 255, 0.72); text-decoration: none;
+      padding: 0.6rem 1rem; font-size: 0.9rem; white-space: nowrap;
+      border-bottom: 2px solid transparent;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    nav.onglets a:hover { color: #fff; }
+    nav.onglets a[aria-current='page'] { color: var(--or); border-bottom-color: var(--or); }
+
+    /* ---- Le corps ---- */
+    .page { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+    .titre-page { margin-bottom: 1.75rem; }
+    .titre-page h1 { font-size: 1.6rem; color: var(--nuit); font-weight: 600; }
+    .titre-page p { color: var(--gris); font-size: 0.92rem; }
+
+    /* ---- Pièces communes ---- */
+    .carte {
+      background: #fff; border: 1px solid var(--bord); border-radius: 8px;
+      padding: 1.75rem; margin-bottom: 1.5rem;
+    }
+    .carte > h2 {
+      font-size: 1.1rem; color: var(--nuit); font-weight: 600;
+      margin-bottom: 1.25rem;
+    }
+
+    .chiffres {
+      display: grid; gap: 1rem; margin-bottom: 1.5rem;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    .chiffre {
+      background: #fff; border: 1px solid var(--bord); border-radius: 8px;
+      padding: 1.25rem; text-align: center;
+    }
+    .chiffre .n { font-size: 1.9rem; font-weight: 600; color: var(--nuit); line-height: 1.1; }
+    .chiffre .l { font-size: 0.82rem; color: var(--gris); margin-top: 0.35rem; }
+
+    table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    thead th {
+      text-align: left; font-weight: 600; color: var(--nuit); font-size: 0.82rem;
+      text-transform: uppercase; letter-spacing: 0.04em;
+      padding: 0.7rem 0.9rem; border-bottom: 2px solid var(--bord);
+    }
+    tbody td { padding: 0.85rem 0.9rem; border-bottom: 1px solid #f0f0f3; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tbody tr:hover { background: #fafafc; }
+    .defile { overflow-x: auto; }
+
+    .note {
+      margin-top: 1.5rem; padding: 0.9rem 1.1rem; border-radius: 6px;
+      background: #f7f8fc; border-left: 3px solid var(--nuit);
+      font-size: 0.88rem; color: #4a4a55;
+    }
+    .note.attention { background: #fdf7ec; border-left-color: #c08a2e; }
+    .vide { padding: 2.5rem; text-align: center; color: var(--gris); }
+  </style>
+</head>
+<body>
+  <div class="barre">
+    <div class="barre-haut">
+      <div class="marque">Chalet Cosy <span>— administration</span></div>
+      <div class="qui">
+        <span class="mail">{email}</span>
+        <!-- La déconnexion est un POST : une image ou un lien préchargé
+             suffirait à vider la session de quelqu'un si elle répondait
+             à un GET. -->
+        <form method="POST" action="/admin/deconnexion">
+          <button type="submit" class="quitter">Se déconnecter</button>
+        </form>
+      </div>
+    </div>
+    <nav class="onglets">
+      {ONGLETS.map(o => (
+        <a href={o.href} aria-current={ici === o.href ? 'page' : undefined}>{o.libelle}</a>
+      ))}
+    </nav>
+  </div>
+
+  <div class="page">
+    <div class="titre-page">
+      <h1>{titre}</h1>
+      {sous_titre && <p>{sous_titre}</p>}
+    </div>
+    <slot />
+  </div>
+</body>
+</html>

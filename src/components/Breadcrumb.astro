@@ -1,0 +1,32 @@
+---
+/* ============================================================
+   Fil d'Ariane.
+
+   Il double en clair ce que `BreadcrumbList` dit aux moteurs (voir
+   `src/lib/seo.ts`) : les deux doivent toujours énoncer le même chemin.
+
+   Il ne remplace pas le sur-titre qui le suit — celui-ci est un titre de
+   chapitre (« Aux alentours »), pas un nom de page. Le fil se pose donc
+   au-dessus, sans filet et en gris tertiaire, pour rester ce qu'il est :
+   un repère de navigation, pas une accroche.
+   ============================================================ */
+interface Props {
+  /** Les échelons après l'accueil, du plus haut au plus proche. */
+  trail: [name: string, path: string][];
+}
+const { trail } = Astro.props;
+const last = trail.length - 1;
+---
+<nav aria-label="Fil d’Ariane" class="eyebrow eyebrow--trail">
+  <ol class="flex flex-wrap items-center gap-x-2.5 gap-y-1">
+    <li><a href="/" class="ul-link transition-colors hover:text-ink">Accueil</a></li>
+    {trail.map(([name, path], i) => (
+      <li class="flex items-center gap-2.5">
+        <span aria-hidden="true">/</span>
+        {i === last
+          ? <span aria-current="page">{name}</span>
+          : <a href={path} class="ul-link transition-colors hover:text-ink">{name}</a>}
+      </li>
+    ))}
+  </ol>
+</nav>

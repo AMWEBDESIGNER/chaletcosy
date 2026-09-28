@@ -1,0 +1,149 @@
+---
+/* ============================================================
+   Le formulaire de réservation et le tunnel Stripe.
+
+   Ce composant s'affiche dans une modale déclenchée quand on a
+   sélectionné des dates et cliqué sur « Réserver ». Il demande
+   les coordonnées du visiteur, puis son moyen de paiement.
+
+   ⚠️ JAMAIS DE VALIDATION CLIENT SUR LES MONTANTS. Les prix sont
+   établis par le serveur, qui seul connaît le contexte ; toute
+   revalidation locale d'un montant transmis par le client lui
+   donnerait raison s'il s'en était auto-octroyé un plus bas.
+   ============================================================ */
+---
+<dialog id="paiement" class="fp-modale">
+  <div class="fp-contenu">
+    <button type="button" class="fp-ferme" aria-label="Fermer">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="1.4"/>
+      </svg>
+    </button>
+
+    <!-- Étape 1 : coordonnées et date -->
+    <div data-fp-etape="coordonnees" class="fp-etape">
+      <h3 class="fp-titre">Confirmez votre réservation</h3>
+
+      <form data-fp-form class="fp-formulaire">
+        <div class="grid gap-4">
+          <label class="field">
+            <span>Nom *</span>
+            <input type="text" name="nom" autocomplete="name" required />
+          </label>
+
+          <label class="field">
+            <span>E-mail *</span>
+            <input type="email" name="email" autocomplete="email" required />
+          </label>
+
+          <label class="field">
+            <span>Téléphone</span>
+            <input type="tel" name="telephone" autocomplete="tel" />
+          </label>
+
+          <label class="field">
+            <span>Demande spéciale</span>
+            <textarea name="message" rows="2" placeholder="Accès PMR, lit supplémentaire, etc."></textarea>
+          </label>
+        </div>
+
+        <div class="fp-recap" data-fp-recap></div>
+
+        <button type="submit" class="btn btn-dark w-full mt-6">
+          Procéder au paiement
+        </button>
+
+        <p class="fp-info">
+          Vous allez être redirigé vers Stripe pour payer en sécurité l'acompte.
+        </p>
+      </form>
+    </div>
+
+    <!-- Étape 2 : paiement Stripe -->
+    <div data-fp-etape="paiement" class="fp-etape" hidden>
+      <h3 class="fp-titre">Paiement sécurisé</h3>
+
+      <div class="fp-recap" data-fp-recap></div>
+
+      <form id="paiement-form" data-fp-paiement class="fp-formulaire">
+        <div id="card-element" class="fp-card"></div>
+        <div id="card-errors" class="fp-erreur" role="alert"></div>
+
+        <button type="submit" class="btn btn-dark w-full mt-6" data-fp-soumettre>
+          Payer <span data-montant></span>
+        </button>
+
+        <p class="fp-info">
+          Votre paiement est sécurisé par Stripe. Vous ne serez débité que si votre
+          réservation est confirmée.
+        </p>
+      </form>
+    </div>
+  </div>
+</dialog>
+
+<style is:global>
+  dialog#paiement {
+    width: calc(100% - 2rem); max-width: 500px;
+    padding: 0; border: 0; border-radius: 8px;
+    background: white; color: inherit;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  }
+  dialog#paiement::backdrop { background: rgba(0, 0, 0, 0.4); }
+  dialog#paiement[open] { display: grid; place-items: center; }
+
+  .fp-modale { z-index: 1000; }
+  .fp-contenu {
+    position: relative; width: 100%;
+    padding: clamp(1.5rem, 4vw, 2rem);
+  }
+  .fp-ferme {
+    position: absolute; top: 1rem; right: 1rem; z-index: 1;
+    display: grid; place-items: center; width: 2.5rem; height: 2.5rem;
+    border: 0; background: 0; color: inherit; cursor: pointer;
+    padding: 0; transition: opacity .3s;
+  }
+  .fp-ferme:hover { opacity: 0.6; }
+
+  .fp-etape { display: none; }
+  .fp-etape:not([hidden]) { display: block; }
+
+  .fp-titre {
+    font-family: theme('fontFamily.serif'); font-size: 1.4rem;
+    letter-spacing: -0.01em; margin-bottom: 1.5rem;
+  }
+
+  .fp-formulaire { display: grid; gap: 1rem; margin-top: 1.5rem; }
+  .fp-recap {
+    padding: 1rem; background: theme('colors.sand');
+    border-radius: 4px; font-size: 0.9rem;
+  }
+  .fp-recap-ligne {
+    display: flex; justify-content: space-between; gap: 1rem;
+    padding: 0.4rem 0; color: theme('colors.graphite');
+  }
+  .fp-recap-total {
+    display: flex; justify-content: space-between; gap: 1rem;
+    padding-top: 0.8rem; margin-top: 0.8rem;
+    border-top: 1px solid theme('colors.hair');
+    font-family: theme('fontFamily.serif'); font-size: 1.1rem;
+  }
+
+  .fp-card {
+    padding: 1rem; border: 1px solid theme('colors.hair');
+    border-radius: 4px; background: white;
+  }
+  .StripeElement { padding: 0 !important; }
+  .StripeElement--focus { box-shadow: 0 0 0 2px theme('colors.sand'); }
+
+  .fp-erreur {
+    color: theme('colors.bronze-dk'); font-size: 0.9rem;
+    margin-top: 0.5rem; min-height: 1.2rem;
+  }
+  .fp-erreur:empty { display: none; }
+
+  .fp-info {
+    font-size: 0.8rem; color: theme('colors.muted');
+    margin-top: 1rem; line-height: 1.5;
+  }
+</style>

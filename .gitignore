@@ -1,0 +1,31 @@
+node_modules
+
+# Les secrets, sous toutes leurs déclinaisons. `.env` seul ne suffisait
+# pas : c'est `.env.local` qu'Astro lit en développement, et il s'est
+# retrouvé versionné. En production les clés viennent du tableau de bord
+# Cloudflare — aucun de ces fichiers ne part au déploiement.
+.env
+.env.*
+!.env.example
+
+dist
+.next
+.wrangler
+.cache
+.astro
+
+# Outillage de mesure local — jamais versionné.
+.perf
+
+# Scripts de contrôle jetables, écrits à la racine parce que Playwright doit
+# résoudre `node_modules` depuis le projet. Ils vivent le temps d'une
+# vérification et n'ont rien à faire dans l'historique — le préfixe les tient
+# hors d'un `git add -A` distrait, ce qui est exactement comme l'un d'eux
+# s'est retrouvé versionné.
+_*.mjs
+
+# Captures de sites servant de référence de design. Elles ont leur place sur
+# un disque, pas dans l'historique : deux d'entre elles y pesaient 24 Mo,
+# téléchargés par chaque clone alors qu'aucune ne part en production.
+references/
+*.zip

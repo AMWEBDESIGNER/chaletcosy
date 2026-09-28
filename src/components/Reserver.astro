@@ -1,0 +1,247 @@
+---
+/* ============================================================
+   Le bloc de réservation : deux voies, côte à côte.
+
+   Le direct et Airbnb ne sont pas en concurrence sur cette page — ils
+   s'adressent à deux personnes différentes. Celle qui connaît déjà la
+   chalet veut des dates et un prix ; celle qui arrive d'une recherche veut
+   la caution d'une plateforme et ses avis. Cacher l'une pour pousser
+   l'autre fait perdre les deux.
+
+   ⚠️ SANS JAVASCRIPT, LE CALENDRIER N'EXISTE PAS — et c'est assumé : un
+      calendrier de disponibilité est par nature une interrogation du
+      serveur. Ce qui n'est PAS assumé, ce serait de laisser le visiteur
+      devant un trou. Le repli est donc écrit dans le HTML : Airbnb et le
+      formulaire de contact, tous deux pleinement fonctionnels sans script.
+      Le script remplace ce repli, il ne le complète pas.
+   ============================================================ */
+import { VILLA } from '../lib/villa';
+
+interface Props { class?: string }
+const { class: cls = '' } = Astro.props;
+---
+<section id="reserver" class={`section ${cls}`}>
+  <div class="container-x">
+    <div class="flex flex-wrap items-end justify-between gap-x-10 gap-y-5 border-b border-hair pb-6">
+      <div>
+        <span class="eyebrow">Réserver</span>
+        <h2 data-anim="lignes" class="h-lg mt-5">Vos dates,<br />votre prix.</h2>
+      </div>
+      <p class="max-w-sm text-sm leading-relaxed text-muted">
+        En direct, sans frais de plateforme. Ou sur Airbnb, si vous préférez
+        y retrouver vos avis et votre historique.
+      </p>
+    </div>
+
+    <div data-reserver class="res mt-12">
+      <!-- ─────────── Le calendrier ─────────── -->
+      <div class="res-cal">
+        <div class="res-cal__tete">
+          <button type="button" data-cal-prec class="res-fleche" aria-label="Mois précédent">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="1.4"/></svg>
+          </button>
+          <p data-cal-titre class="res-cal__titre" aria-live="polite"></p>
+          <button type="button" data-cal-suiv class="res-fleche" aria-label="Mois suivant">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.4"/></svg>
+          </button>
+        </div>
+
+        {/* Ce paragraphe est le REPLI sans script. Le calendrier le
+            remplace au montage ; s'il ne se monte pas, il reste, et il dit
+            quoi faire au lieu de laisser une zone morte. */}
+        <div data-cal-mois class="res-mois-lot">
+          <p class="res-panne">
+            Le calendrier demande JavaScript. Les disponibilités et la réservation
+            restent accessibles sur Airbnb, ou par le formulaire de contact.
+          </p>
+        </div>
+
+        <p class="res-legende">
+          <span><i class="res-pastille" data-p="libre"></i>Disponible</span>
+          <span><i class="res-pastille" data-p="occupe"></i>Réservé</span>
+          {/* Le jour de rotation mérite d'être expliqué : un visiteur qui
+              voit une case cliquable au milieu d'une semaine barrée croit
+              à un défaut d'affichage. */}
+          <span class="res-legende__note">Un départ et une arrivée peuvent tomber le même jour.</span>
+        </p>
+      </div>
+
+      <!-- ─────────── Le récapitulatif ─────────── -->
+      <aside class="res-fiche">
+        <div class="res-fiche__haut">
+          <label class="field">
+            <span>Voyageurs</span>
+            <select data-voyageurs>
+              {Array.from({ length: VILLA.guests }, (_, i) => i + 1).map((n) => (
+                <option value={n} selected={n === 2}>{n} voyageur{n > 1 ? 's' : ''}</option>
+              ))}
+            </select>
+          </label>
+
+          <p data-resume class="res-resume" aria-live="polite">Choisissez une date d’arrivée.</p>
+          <button type="button" data-raz class="res-raz" hidden>Effacer les dates</button>
+        </div>
+
+        <div data-devis class="res-devis"></div>
+
+        <div class="res-fiche__bas">
+          <button type="button" data-reserver-btn class="btn btn-dark w-full" disabled>
+            Réserver
+          </button>
+          <a href={VILLA.airbnb} target="_blank" rel="noopener" class="btn btn-ghost w-full">
+            Réserver sur Airbnb
+          </a>
+          <p class="res-alt">
+            Une question, un séjour long, un événement&nbsp;?
+            <a href="/contact" class="ul-link">Écrivez-nous</a>.
+          </p>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+{/* ⚠️ `is:global`, ET CE N'EST PAS UN RENONCEMENT.
+
+    Un `<style>` d'Astro est scopé : le compilateur tague les éléments du
+    GABARIT avec un attribut, et les sélecteurs ne visent que lui. Or les
+    jours du calendrier et le détail du devis sont fabriqués par le script,
+    à l'exécution — ils n'ont jamais cet attribut. Scopées, les règles ne
+    les atteignaient tout simplement pas : la grille se dépliait en une
+    ligne de chiffres, et le devis en un paragraphe compact. Le rendu était
+    cassé alors que toute la logique passait au vert.
+
+    Tout est donc préfixé par `.res`, sans exception : le bloc ne peut rien
+    repeindre hors de lui-même. */}
+<style is:global>
+  .res {
+    display: grid;
+    gap: clamp(1.5rem, 4vw, 3rem);
+  }
+  @media (min-width: 900px) {
+    /* Le calendrier commande la largeur : c'est lui qu'on lit, la fiche
+       n'est qu'un récapitulatif. */
+    .res { grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); }
+  }
+
+  /* ---------- Le calendrier ---------- */
+  .res-cal__tete {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 1rem; margin-bottom: 1.5rem;
+  }
+  .res-cal__titre {
+    font-family: theme('fontFamily.serif'); font-size: 1.05rem;
+    letter-spacing: .01em; text-transform: capitalize;
+  }
+  @media (min-width: 640px) { .res-cal__titre { visibility: hidden; } }
+
+  .res-fleche {
+    display: grid; place-items: center; width: 2.5rem; height: 2.5rem;
+    border: 1px solid theme('colors.hair'); border-radius: 999rem;
+    color: theme('colors.ink'); transition: border-color .4s var(--ease), background .4s var(--ease);
+  }
+  .res-fleche:hover:not(:disabled) { border-color: theme('colors.ink'); background: theme('colors.ink'); color: theme('colors.bone'); }
+  .res-fleche:disabled { opacity: .3; cursor: not-allowed; }
+
+  .res-mois-lot { display: grid; gap: clamp(1.5rem, 4vw, 2.5rem); }
+  @media (min-width: 640px) { .res-mois-lot { grid-template-columns: 1fr 1fr; } }
+  /* Sur téléphone, un seul mois : deux grilles côte à côte y donnent des
+     cases de 30 px, sous la cible tactile confortable. */
+  @media (max-width: 639px) { .res-mois:nth-child(2) { display: none; } }
+
+  .res-mois__nom {
+    font-family: theme('fontFamily.sans'); font-size: .68rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: .18em; color: theme('colors.muted');
+    text-align: center; margin-bottom: .9rem;
+  }
+  @media (max-width: 639px) { .res-mois__nom { display: none; } }
+
+  .res-grille { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+
+  .res-jour-nom {
+    display: grid; place-items: center; height: 1.9rem;
+    font-family: theme('fontFamily.sans'); font-size: .6rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: .1em; color: theme('colors.faint');
+  }
+  .res-vide { aspect-ratio: 1; }
+
+  .res-jour {
+    aspect-ratio: 1; display: grid; place-items: center;
+    font-family: theme('fontFamily.serif'); font-size: .95rem;
+    color: theme('colors.ink'); border-radius: 2px;
+    transition: background .28s var(--ease), color .28s var(--ease);
+  }
+  .res-jour:hover:not(:disabled) { background: theme('colors.sand'); }
+
+  /* Une nuit prise reste LISIBLE : on la barre, on ne l'efface pas. Un
+     chiffre effacé se lit comme un trou d'affichage, un chiffre barré se
+     lit comme une information. */
+  .res-jour[data-etat='occupe'] {
+    color: theme('colors.faint'); text-decoration: line-through;
+    text-decoration-thickness: 1px; cursor: not-allowed;
+  }
+  .res-jour[data-etat='passe'] { color: theme('colors.faint'); opacity: .45; cursor: not-allowed; }
+  .res-jour[data-etat='hors-portee'] { color: theme('colors.faint'); opacity: .35; cursor: not-allowed; }
+
+  .res-jour[data-entre] { background: theme('colors.sand'); }
+  .res-jour[data-borne] {
+    background: theme('colors.ink'); color: theme('colors.bone'); font-weight: 500;
+  }
+
+  .res-legende {
+    display: flex; flex-wrap: wrap; align-items: center; gap: .5rem 1.4rem;
+    margin-top: 1.6rem; padding-top: 1.2rem; border-top: 1px solid theme('colors.hair');
+    font-size: .72rem; color: theme('colors.muted');
+  }
+  .res-legende span { display: inline-flex; align-items: center; gap: .5em; }
+  .res-legende__note { color: theme('colors.faint'); font-style: italic; }
+  .res-pastille { width: .55rem; height: .55rem; border-radius: 1px; flex: none; }
+  .res-pastille[data-p='libre'] { background: theme('colors.sand'); border: 1px solid theme('colors.hair'); }
+  .res-pastille[data-p='occupe'] { background: theme('colors.hair'); }
+
+  .res-panne {
+    grid-column: 1 / -1; padding: 2.5rem 1rem; text-align: center;
+    font-size: .88rem; line-height: 1.7; color: theme('colors.muted');
+  }
+
+  /* ---------- La fiche ---------- */
+  .res-fiche {
+    display: flex; flex-direction: column; gap: 1.5rem;
+    padding: clamp(1.25rem, 3vw, 1.9rem);
+    border: 1px solid theme('colors.hair'); background: theme('colors.sand');
+    align-self: start;
+  }
+  .res-fiche__haut { display: flex; flex-direction: column; gap: 1.1rem; }
+  .res-resume { font-size: .88rem; line-height: 1.6; color: theme('colors.graphite'); }
+  .res-raz {
+    align-self: flex-start; font-size: .72rem; text-transform: uppercase;
+    letter-spacing: .14em; color: theme('colors.muted');
+    border-bottom: 1px solid currentColor; padding-bottom: 1px;
+  }
+  .res-raz:hover { color: theme('colors.ink'); }
+
+  .res-devis:empty { display: none; }
+  .res-attente { font-size: .82rem; color: theme('colors.faint'); }
+  .res-refus { font-size: .85rem; line-height: 1.6; color: theme('colors.bronze-dk'); }
+  .res-provisoire {
+    font-size: .74rem; line-height: 1.55; color: theme('colors.bronze-dk');
+    border-left: 2px solid theme('colors.bronze'); padding-left: .7rem; margin-bottom: .9rem;
+  }
+
+  .res-detail { display: flex; flex-direction: column; gap: .5rem; }
+  .res-ligne {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    font-size: .82rem; color: theme('colors.graphite');
+  }
+  .res-total, .res-acompte {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 1rem;
+    padding-top: .8rem; margin-top: .8rem; border-top: 1px solid theme('colors.hair');
+    font-family: theme('fontFamily.serif');
+  }
+  .res-total { font-size: 1.15rem; }
+  .res-acompte { font-size: .95rem; color: theme('colors.bronze-dk'); border-top: 0; margin-top: 0; padding-top: .3rem; }
+  .res-solde { margin-top: .5rem; font-size: .74rem; color: theme('colors.faint'); }
+
+  .res-fiche__bas { display: flex; flex-direction: column; gap: .9rem; margin-top: auto; }
+  .res-alt { font-size: .76rem; line-height: 1.6; color: theme('colors.muted'); text-align: center; }
+</style>

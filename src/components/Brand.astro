@@ -1,0 +1,78 @@
+---
+/* ============================================================
+   Le logo du chalet.
+
+   Le fichier source est miel sur un fond vert forêt. Il est ici détouré
+   en deux tons — miel pour les fonds sombres, forêt pour les fonds
+   clairs — car un logo à fond opaque poserait un rectangle vert sur le
+   lin du site.
+
+   Deux formats, parce que le bloc complet porte un pictogramme et une
+   ligne de lieu : dans un en-tête de 80 px, « DIGNE-LES-BAINS · PROVENCE »
+   tomberait sous 3 px. La variante `compact` ne garde que CHALET et
+   l'anglaise, ce qui laisse au nom toute la hauteur disponible.
+   ============================================================ */
+interface Props {
+  /** `compact` : CHALET et le nom. `full` : le bloc entier avec le filet. */
+  variant?: 'compact' | 'full';
+  /** `auto` bascule miel/forêt selon le fond ; sinon on force un ton. */
+  tone?: 'auto' | 'or' | 'nuit';
+  href?: string;
+  class?: string;
+}
+const { variant = 'compact', tone = 'auto', href = '/', class: cls = '' } = Astro.props;
+
+const suffix = variant === 'compact' ? '-compact' : '';
+const [w, h] = variant === 'compact' ? [400, 367] : [560, 454];
+const ALT = 'Chalet Cosy — Digne-les-Bains, Provence';
+
+/* Le logo est posé à hauteur fixe : ~60 px de large dans l'en-tête, ~160 px
+   au pied de page. La grande définition ne sert donc qu'aux écrans à deux
+   pixels par point ; ailleurs elle coûte le double pour rien. */
+const small = variant === 'compact' ? 200 : 280;
+const sizes = variant === 'compact' ? '64px' : '160px';
+const srcset = (ton: string) =>
+  `/images/logo-${ton}${suffix}-${small}.webp ${small}w, /images/logo-${ton}${suffix}.webp ${w}w`;
+---
+<a href={href} class={`brand brand--${variant} brand--${tone} ${cls}`}
+   aria-label={`${ALT}, retour à l'accueil`}>
+  {/* Deux fichiers, un seul visible à la fois. Seul celui qui porte le
+      texte alternatif compte pour les moteurs et la synthèse vocale. */}
+  {/* Pas de `fetchpriority="high"` : en mode `auto` les deux tons sont
+      téléchargés, et deux logos prioritaires passaient devant la
+      photographie du hero — celle-là même que mesure le LCP. */}
+  {tone !== 'or' && (
+    <img class="brand-nuit" src={`/images/logo-nuit${suffix}.webp`} alt={ALT}
+         srcset={srcset('nuit')} sizes={sizes}
+         width={w} height={h} decoding="async" />
+  )}
+  {tone !== 'nuit' && (
+    <img class="brand-or" src={`/images/logo-or${suffix}.webp`}
+         alt={tone === 'or' ? ALT : ''} aria-hidden={tone === 'or' ? undefined : 'true'}
+         srcset={srcset('or')} sizes={sizes}
+         width={w} height={h} decoding="async" />
+  )}
+</a>
+
+<style>
+  .brand { position: relative; display: block; flex: none; }
+  .brand img {
+    display: block; width: auto; height: 100%;
+    transition: opacity .45s var(--ease);
+  }
+
+  /* Hauteurs par défaut — surchargeables par la classe passée en `class`. */
+  .brand--compact { height: 3.1rem; }
+  .brand--full { height: 6rem; }
+
+  /* En mode `auto`, les deux tons se superposent : le vert forêt est visible
+     par défaut, le miel prend le relais sur les fonds sombres. Le passage
+     de l'un à l'autre est piloté par `.is-over-dark` sur l'en-tête. */
+  .brand--auto .brand-or { position: absolute; inset: 0; opacity: 0; }
+  :global(#hdr.is-over-dark) .brand--auto .brand-nuit { opacity: 0; }
+  :global(#hdr.is-over-dark) .brand--auto .brand-or { opacity: 1; }
+
+  @media (min-width: 1280px) {
+    .brand--compact { height: 3.4rem; }
+  }
+</style>

@@ -1,0 +1,33 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { AGENCY } from '../lib/legal';
+import { breadcrumb } from '../lib/seo';
+
+const sections = [
+  { t: 'Données collectées', c: "Nous collectons uniquement les informations que vous transmettez via nos formulaires : nom, adresse e-mail, téléphone, dates de séjour envisagées, nombre de voyageurs et message." },
+  { t: 'Utilisation des données', c: "Ces informations servent exclusivement à répondre à votre demande de séjour et à préparer votre venue. Elles ne sont ni revendues, ni cédées, ni utilisées à des fins publicitaires." },
+  { t: 'Conservation', c: "Vos données sont conservées le temps nécessaire au traitement de votre demande et, en cas de séjour, pendant la durée légale de conservation des pièces afférentes. Elles sont ensuite supprimées." },
+  { t: 'Vos droits', c: `Conformément au RGPD, vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation et d'opposition sur vos données. Pour l'exercer, écrivez à ${AGENCY.email}.` },
+  { t: 'Réservation par une plateforme tierce', c: "La réservation s'effectue sur la plateforme qui héberge l'annonce du chalet. Les données que vous y saisissez sont régies par la politique de confidentialité de cette plateforme, sur laquelle nous n'avons pas la main." },
+  { t: 'Cookies', c: "Ce site n'utilise ni cookie de mesure d'audience, ni traceur publicitaire. Les cartes affichées sont chargées depuis OpenStreetMap, qui peut déposer ses propres cookies techniques." },
+];
+---
+<Layout title="Confidentialité — Chalet Cosy, location à Digne-les-Bains"
+        description="Quelles données personnelles Chalet Cosy collecte, pourquoi, combien de temps elle les conserve et comment exercer vos droits, conformément au RGPD."
+        jsonLd={breadcrumb(Astro.site, [['Confidentialité', '/confidentialite']])}>
+  <section class="container-x section">
+    <div class="max-w-prose">
+      <span class="eyebrow">Confidentialité</span>
+      <h1 data-anim="lignes" class="h-xl mt-6">Politique de confidentialité</h1>
+      <p class="mt-3 text-[0.78rem] uppercase tracking-[0.12em] text-faint">Dernière mise à jour : septembre 2026</p>
+    </div>
+    <div class="mt-14 max-w-prose space-y-12">
+      {sections.map((s) => (
+        <div class="border-t border-hair pt-6">
+          <h2 class="font-serif text-xl tracking-tight">{s.t}</h2>
+          <p class="prose-body mt-3">{s.c}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+</Layout>

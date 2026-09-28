@@ -1,0 +1,19 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Page introuvable — Chalet Cosy"
+        description="Cette page n'existe pas ou a été déplacée. Retrouvez le chalet, sa galerie et Digne-les-Bains."
+        noindex>
+  <section class="container-x flex min-h-[70svh] flex-col justify-center py-24">
+    <span class="eyebrow">Erreur 404</span>
+    <h1 data-anim="lignes" class="display mt-6 max-w-[16ch] !text-[clamp(2.3rem,6vw,4.6rem)]">Cette adresse n’existe pas.</h1>
+    <p class="lead mt-7 max-w-md">
+      Elle a peut-être changé de nom. Le chalet, lui, n’a pas bougé : il vous attend
+      au pied de la montagne, à Digne-les-Bains.
+    </p>
+    <div class="mt-10 flex flex-wrap gap-4">
+      <a href="/le-chalet" class="btn btn-ghost">Découvrir le chalet</a>
+      <a href="/contact" class="btn !border-transparent !px-0 !text-muted hover:!text-ink">Nous écrire</a>
+    </div>
+  </section>
+</Layout>

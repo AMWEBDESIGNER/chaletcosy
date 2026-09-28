@@ -1,0 +1,163 @@
+---
+import Photo from './Photo.astro';
+
+/* ============================================================
+   La tuile qui se déplie.
+
+   Au repos, la photographie n'est qu'une meurtrière : une bande étroite
+   découpée au centre du cadre, le reste du bloc étant tenu par le fond.
+   Au survol, la découpe s'ouvre en grand et la photographie, décalée vers
+   le haut, redescend se mettre en place. Deux mouvements simultanés —
+   l'ouverture et le recentrage — qui donnent l'impression que l'image
+   était là depuis le début, derrière un volet.
+
+   Rien n'est animé qui coûte un recalcul de mise en page : `clip-path` et
+   `transform` seulement, tous deux composés par le GPU.
+
+   Sans survol (tactile, clavier), la meurtrière reste : c'est pourquoi
+   elle est déjà cadrée sur le sujet et non sur un bord perdu. Le focus
+   clavier déclenche exactement le même dépliage.
+   ============================================================ */
+interface Props {
+  href: string;
+  img: string;
+  alt: string;
+  title: string;
+  abstract?: string;
+  /** Le geste proposé, nommé. Obligatoire : voir plus bas. */
+  cta: string;
+  sizes?: string;
+  /** La tuile large ouvre sa meurtrière sur toute la largeur du cadre. */
+  wide?: boolean;
+  ext?: boolean;
+}
+
+/* `cta` n'a PAS de valeur par défaut, et c'est délibéré : un défaut serait
+   « Découvrir » ou « En savoir plus », c'est-à-dire le libellé générique
+   qu'on veut précisément éviter. Sans défaut, chaque tuile est obligée de
+   nommer le geste qu'elle propose — « Ouvrir la carte des criques »,
+   « Voir les cinq chambres ». Le typage l'exige, l'oubli ne compile pas. */
+const { href, img, alt, title, abstract, cta,
+        sizes = 'tiers', wide = false, ext = false } = Astro.props;
+
+const ext_attrs = ext ? { target: '_blank', rel: 'noopener' } : {};
+---
+<a href={href} class:list={['tile', wide && 'tile--wide']} {...ext_attrs}>
+  <div class="tile__image">
+    <Photo src={img} sizes={sizes} alt={alt} loading="lazy" decoding="async" />
+  </div>
+
+  <div class="tile__text">
+    <h3 class="tile__title">{title}</h3>
+    {abstract && <p class="tile__abstract">{abstract}</p>}
+    <div class="tile__cta"><span class="tile__more">{cta}</span></div>
+  </div>
+</a>
+
+<style>
+  .tile {
+    /* Une seule cellule : l'image et le texte s'y superposent sans position
+       absolue, donc sans hauteur à recalculer nulle part. */
+    display: grid; grid-template-areas: 'main'; grid-template-columns: minmax(0, 1fr);
+    position: relative; aspect-ratio: 4 / 5; overflow: hidden;
+    background: theme('colors.ink'); color: theme('colors.bone');
+    isolation: isolate;
+
+    --clipV: 9%;
+    --clipH: 17%;
+    --clipBase: 54%;
+  }
+  .tile--wide { --clipH: 0%; --clipV: 6%; --clipBase: 48%; aspect-ratio: 16 / 10; }
+
+  /* ---------- La meurtrière ---------- */
+  .tile__image { grid-area: main; position: relative; height: 100%; }
+  .tile__image :global(img) { height: 100%; width: 100%; object-fit: cover; }
+
+  .tile__image,
+  .tile__image :global(img) {
+    transition: clip-path 1s var(--ease-expo), transform 1.15s var(--ease-expo);
+  }
+  .tile__image { clip-path: inset(var(--clipV) var(--clipH) var(--clipBase) var(--clipH)); }
+  /* L'image est décalée vers le haut derrière sa découpe : c'est ce
+     contre-mouvement qui la fait « descendre en place » à l'ouverture. Sans
+     lui, le volet s'ouvrirait sur une image immobile — un store, pas un
+     dévoilement. */
+  .tile__image :global(img) { transform: translate3d(0, -31%, 0); }
+
+  /* Le dégradé n'existe qu'une fois la photographie ouverte : au repos, le
+     texte est sur l'encre, il n'a besoin de rien. */
+  /* Le dégradé monte aux trois quarts et part de l'encre pleine : sous le
+     titre, le fond doit tenir le seuil AA quelle que soit la clarté de la
+     photographie. Un ciel de fin de journée derrière un titre ivoire tombe
+     sinon autour de 3:1. Les deux tiers hauts de l'image restent intacts. */
+  .tile__image::after {
+    content: ''; position: absolute; inset: auto 0 0 0; height: 76%;
+    background: linear-gradient(0deg,
+      theme('colors.ink') 0%, rgb(28 42 32 / 0.82) 38%, transparent 100%);
+    opacity: 0; transition: opacity 1s var(--ease-expo);
+  }
+
+  /* ---------- Le texte ---------- */
+  .tile__text {
+    grid-area: main; z-index: 1; display: flex; flex-direction: column;
+    justify-content: flex-end;
+    padding: clamp(1.25rem, 2.6vw, 2rem);
+  }
+  .tile__title {
+    font-family: theme('fontFamily.serif'); font-weight: 400;
+    font-size: clamp(1.5rem, 2.7vw, 2.15rem); line-height: 1.08;
+    letter-spacing: -0.018em; margin: 0;
+    transition: transform .9s var(--ease-expo);
+  }
+  .tile__abstract {
+    margin-top: 0.7rem; font-size: 0.9rem; line-height: 1.55;
+    color: rgb(243 238 226 / 0.7);
+    transition: opacity .7s var(--ease-expo), transform .9s var(--ease-expo);
+  }
+
+  /* Le libellé d'action est en réserve sous le cadre. `overflow: hidden` sur
+     son conteneur le tient hors champ tant qu'il n'est pas appelé. */
+  .tile__cta { margin-top: 1rem; overflow: hidden; }
+  .tile__more {
+    display: inline-flex; align-items: center; gap: 0.55em;
+    font-family: theme('fontFamily.sans'); font-size: 0.7rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.18em; color: theme('colors.gold');
+    opacity: 0; transform: translate3d(0, 130%, 0);
+    transition: opacity .6s var(--ease-expo), transform .8s var(--ease-expo);
+  }
+  .tile__more::after { content: '→'; transition: transform .6s var(--ease-expo); }
+
+  /* ---------- L'ouverture ----------
+     `:focus-visible` autant que `:hover` : au clavier la tuile se déplie de
+     la même façon, sinon le libellé d'action resterait invisible pour qui
+     n'a pas de souris. */
+  .tile:hover .tile__image,
+  .tile:focus-visible .tile__image { clip-path: inset(0 0 0 0); }
+  .tile:hover .tile__image :global(img),
+  .tile:focus-visible .tile__image :global(img) { transform: none; }
+  .tile:hover .tile__image::after,
+  .tile:focus-visible .tile__image::after { opacity: 0.92; }
+
+  .tile:hover .tile__title,
+  .tile:focus-visible .tile__title { transform: translate3d(0, -0.15em, 0); }
+  .tile:hover .tile__abstract,
+  .tile:focus-visible .tile__abstract { opacity: 0; transform: translate3d(0, 1.4em, 0); }
+  .tile:hover .tile__more,
+  .tile:focus-visible .tile__more { opacity: 1; transform: none; }
+  .tile:hover .tile__more::after { transform: translateX(4px); }
+
+  /* Sans survol possible, la tuile s'ouvre à demi et montre son libellé :
+     l'effet est un supplément sur les machines qui l'ont, jamais la
+     condition pour comprendre où mène la tuile. */
+  @media (hover: none) {
+    .tile { --clipV: 0%; --clipH: 0%; --clipBase: 0%; }
+    .tile__image :global(img) { transform: none; }
+    .tile__image::after { opacity: 0.92; }
+    .tile__abstract { opacity: 1; transform: none; }
+    .tile__more { opacity: 1; transform: none; }
+  }
+
+  /* En mouvement réduit, `transition-duration` est déjà neutralisé en
+     global : la tuile bascule d'un état à l'autre sans glissement, ce qui
+     est le comportement voulu. Rien à ajouter. */
+</style>

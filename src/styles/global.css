@@ -1,0 +1,576 @@
+/* ============================================================
+   Chalet Cosy — Design system « Forêt »
+   Palette de lin, de bois et de forêt (voir tailwind.config.mjs).
+   Serif de lecture à axe optique (Newsreader) pour les titres et le texte,
+   anglaise (Pinyon Script) pour l'accent manuscrit, grotesque (Switzer) pour
+   l'interface.
+   ============================================================ */
+/* Newsreader plutôt qu'un didone : le Bodoni essayé d'abord amincissait ses
+   déliés jusqu'au cheveu, et le paragraphe s'y brisait à l'écran. Newsreader
+   est dessinée pour la lecture longue et garde des traits fins qui tiennent.
+   Son axe optique (6→72) fait le reste : il creuse le contraste à mesure que
+   le corps grandit, ce qui rend au grand titre l'élégance de gravure — sans la
+   payer sur le texte courant. Deux fichiers variables couvrent 300→700. */
+@font-face { font-family:'Newsreader'; font-style:normal; font-weight:300 700; font-display:swap; src:url('/fonts/newsreader.woff2') format('woff2'); }
+@font-face { font-family:'Newsreader'; font-style:italic; font-weight:300 700; font-display:swap; src:url('/fonts/newsreader-i.woff2') format('woff2'); }
+@font-face { font-family:'Pinyon Script'; font-style:normal; font-weight:400; font-display:swap; src:url('/fonts/pinyon-400.woff2') format('woff2'); }
+@font-face { font-family:'Switzer'; font-style:normal; font-weight:300; font-display:swap; src:url('/fonts/switzer-300.woff2') format('woff2'); }
+@font-face { font-family:'Switzer'; font-style:normal; font-weight:400; font-display:swap; src:url('/fonts/switzer-400.woff2') format('woff2'); }
+@font-face { font-family:'Switzer'; font-style:normal; font-weight:500; font-display:swap; src:url('/fonts/switzer-500.woff2') format('woff2'); }
+@font-face { font-family:'Switzer'; font-style:normal; font-weight:600; font-display:swap; src:url('/fonts/switzer-600.woff2') format('woff2'); }
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --gutter: clamp(1.25rem, 5vw, 4.5rem);
+    --section: clamp(4.5rem, 10vw, 10rem);
+    --header: 5rem;
+    --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    /* Deux courbes de plus, et une seule raison : la sortie exponentielle
+       part vite et s'arrête longuement, ce qui donne aux grandes surfaces
+       (rideau, tuiles, masques) le freinage d'un objet qui a du poids.
+       `--ease-soft` est son contraire symétrique, pour ce qui doit partir
+       et revenir sans emphase. */
+    --ease-expo: cubic-bezier(0.19, 1, 0.22, 1);
+    --ease-soft: cubic-bezier(0.445, 0.05, 0.55, 0.95);
+  }
+  * { -webkit-font-smoothing: antialiased; }
+  /* Pas de `scroll-behavior: smooth` : ScrollSmoother pilote le défilement,
+     et les deux lissages se battraient à chaque ancre. */
+  html { -webkit-text-size-adjust: 100%; }
+  html.menu-open, html.menu-open body { overflow: hidden; }
+  body {
+    @apply bg-bone text-ink font-sans;
+    font-weight: 400; font-size: 1rem; line-height: 1.65;
+    font-feature-settings: 'ss01','liga','kern';
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden;
+  }
+  ::selection { background: theme('colors.ink'); color: theme('colors.bone'); }
+  /* `font-optical-sizing: auto` est ce qui fait vivre l'axe optique : sans
+     lui, le navigateur figerait le dessin à une seule taille et l'on perdrait
+     le contraste des grands corps comme la robustesse des petits. */
+  h1,h2,h3,h4 { @apply font-serif; font-weight: 500; letter-spacing: -0.012em; line-height: 1.1;
+                text-wrap: balance; font-optical-sizing: auto; }
+  p { text-wrap: pretty; }
+  a { color: inherit; text-decoration: none; }
+  img, svg, video { display: block; max-width: 100%; }
+  /* `<picture>` n'est qu'un aiguillage de sources : `display: contents` le
+     retire de la mise en page, et l'image reprend exactement la place
+     qu'elle occupait quand elle était seule — aucune hauteur en pourcentage
+     à recalculer, aucune grille à retoucher. */
+  picture { display: contents; }
+  :focus-visible { outline: 2px solid theme('colors.bronze'); outline-offset: 3px; }
+  /* Même arbitrage que pour les textes : l'anneau couleur bois disparaît sur
+     la forêt. Partout où le fond passe à l'encre, il s'éclaircit en miel. */
+  .bg-ink :focus-visible, #lightbox :focus-visible,
+  #hdr.is-over-dark :focus-visible {
+    outline-color: theme('colors.bronze-lt');
+  }
+  ::placeholder { color: theme('colors.faint'); opacity: 1; }
+  :target { scroll-margin-top: 7rem; }
+  [hidden] { display: none !important; }
+
+  /* En-tête fixe : dégage le contenu des pages sans hero plein écran. */
+  main > :first-child:not([data-hero]) { padding-top: calc(var(--header) + clamp(1.5rem, 4vw, 3.25rem)); }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0;
+  }
+}
+
+@layer components {
+  /* ---------- Mise en page ---------- */
+  .container-x { width: 100%; max-width: 1240px; margin-inline: auto; padding-inline: var(--gutter); }
+  .section { padding-block: var(--section); }
+
+  /* ---------- Typographie éditoriale ---------- */
+  /* Newsreader porte plus haut que le didone à corps égal : on rend un peu de
+     taille et on resserre l'interlettrage, sinon le titre déborde. */
+  .display { font-family: theme('fontFamily.serif'); font-weight: 500; line-height: 1;
+             letter-spacing: -0.022em; font-size: clamp(2.5rem, 7vw, 6.4rem);
+             font-optical-sizing: auto; }
+  .h-xl { font-size: clamp(1.95rem, 4.5vw, 3.7rem); letter-spacing: -0.018em; line-height: 1.06; }
+  .h-lg { font-size: clamp(1.55rem, 3.1vw, 2.4rem); letter-spacing: -0.014em; line-height: 1.14; }
+
+  /* ---------- L'accent manuscrit ----------
+     Un seul mot du titre passe à l'anglaise, comme une signature au bas d'un
+     acte. Elle porte plus bas et plus large que le serif : on la remonte et on
+     lui rend son corps, sinon elle flotte sous la ligne de base. */
+  .script { font-family: theme('fontFamily.script'); font-weight: 400;
+            font-size: 1.32em; line-height: 0.8; letter-spacing: 0;
+            display: inline-block; transform: translateY(0.08em); padding-inline: 0.06em; }
+  .script--accent { color: theme('colors.bougain'); }
+
+  /* ---------- L'arche ----------
+     Le plein cintre des portes et des fenêtres provençales. On le taille
+     dans le conteneur, l'image reste rectangulaire dessous : aucun découpage
+     d'asset, et la forme s'adapte à toutes les tailles. */
+  .arch { border-radius: theme('borderRadius.arch'); overflow: hidden; }
+  .arch--soft { border-radius: 50% 50% 0 0 / 22% 22% 0 0; }
+  .arch--full { border-radius: 999rem 999rem 0 0; }
+
+  /* ---------- L'index ----------
+     Les lieux ne sont pas des vignettes mais une table des matières : des noms
+     en très grand corps, et une seule image, qui suit le curseur et change de
+     ligne en ligne. La liste se lit encore sans souris — la vignette n'est
+     qu'un supplément, jamais le porteur de l'information. */
+  .index-row {
+    display: flex; align-items: baseline; gap: 1.25rem;
+    padding-block: clamp(1rem, 2.4vw, 1.9rem);
+    border-top: 1px solid theme('colors.hair-dk');
+    font-family: theme('fontFamily.serif'); font-weight: 400;
+    font-size: clamp(1.9rem, 5.4vw, 4.4rem); line-height: 1;
+    color: theme('colors.bone'); transition: color .5s var(--ease), opacity .5s var(--ease);
+  }
+  .index-row:last-child { border-bottom: 1px solid theme('colors.hair-dk'); }
+  .index-row .idx { font-family: theme('fontFamily.sans'); font-size: .68rem; font-weight: 500;
+                    letter-spacing: .2em; color: theme('colors.azur'); flex: none; }
+  /* L'index vit sur la forêt : `faint`, calibré pour le lin, y tombe sous
+     3:1. C'est la sauge (`azur`), éteinte, qui tient le rôle du texte
+     tertiaire ici. */
+  .index-row .meta { margin-left: auto; font-family: theme('fontFamily.sans'); font-size: .72rem;
+                     letter-spacing: .16em; text-transform: uppercase; color: rgba(183,199,163,.82); }
+  @media (hover: hover) {
+    [data-index]:has(.index-row:hover) .index-row:not(:hover) { opacity: .34; }
+    .index-row:hover { color: theme('colors.azur'); }
+  }
+
+  /* Vignette suiveuse — une seule pour toute la liste, positionnée en JS.
+
+     ⚠️ Le CSS ne pose PLUS de `transform` : c'est GSAP qui possède la
+     transformation entière (centrage compris, en `xPercent`/`yPercent`).
+     Un centrage écrit ici serait réécrit à chaque image par le suivi, et
+     la vignette se recalerait sur le coin du curseur au lieu de son
+     milieu. Même arbitrage que pour le curseur sur-mesure, où la position
+     et l'échelle vivent dans deux propriétés séparées.
+
+     Il ne reste donc ici que l'opacité, que rien d'autre ne touche. */
+  .index-peek {
+    position: fixed; top: 0; left: 0; z-index: 40; width: clamp(190px, 19vw, 310px);
+    aspect-ratio: 3/4; pointer-events: none; opacity: 0;
+    transition: opacity .45s var(--ease);
+    border-radius: 999rem 999rem 4px 4px; overflow: hidden;
+  }
+  .index-peek.is-on { opacity: 1; }
+  .index-peek img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+                    opacity: 0; transition: opacity .4s var(--ease); }
+  .index-peek img.is-on { opacity: 1; }
+
+  /* ---------- Le manifeste ----------
+     Une seule masse de texte où l'alternance des styles fait le rythme : le
+     romain énonce, l'italique nuance, la capitale scande. */
+  /* Le manifeste est le plus long texte en serif du site : il prend le poids
+     au-dessus du romain courant, qui tient mieux le gris de la page. */
+  /* ⚠️ Le plancher vaut 1,5 rem, et il n'est pas choisi à l'œil : le
+     manifeste est le plus fort des trois énoncés de l'accueil, il doit
+     donc l'être À TOUTE LARGEUR. À 1,3 rem, la hiérarchie s'inversait sur
+     téléphone — 20,8 px contre les 22,4 px de `.enonce`, dont le plancher
+     est plus haut — et la page se lisait à l'envers là où elle se lit le
+     plus. Le sommet du `clamp` ne dit rien du bas ; les deux se règlent
+     ensemble ou pas du tout. */
+  .manifest { font-family: theme('fontFamily.serif'); font-weight: 450;
+              font-size: clamp(1.5rem, 3.2vw, 2.6rem); line-height: 1.32;
+              letter-spacing: -0.014em; text-wrap: pretty; }
+  .manifest em { font-style: italic; color: theme('colors.bronze'); }
+  .manifest b { font-weight: 400; font-family: theme('fontFamily.sans'); font-size: .52em;
+                font-weight: 500; text-transform: uppercase; letter-spacing: .18em;
+                vertical-align: 0.28em; color: theme('colors.muted'); }
+
+  /* ---------- Repères de chapitre ---------- */
+  .chapter { display: flex; align-items: center; gap: 1rem; font-family: theme('fontFamily.sans');
+             font-size: .68rem; text-transform: uppercase; letter-spacing: .24em; }
+  .chapter .n { font-variant-numeric: tabular-nums; color: theme('colors.bronze'); }
+  /* Le terre-cuite est calibré pour le calcaire ; sur la nuit il tombe à
+     2,6:1. Les sections encre reprennent donc sa version claire — 6,7:1 —
+     comme le fait déjà le sur-titre du pied de page. */
+  .bg-ink .chapter .n { color: theme('colors.bronze-lt'); }
+  .chapter::after { content: ''; height: 1px; flex: 1; background: currentColor; opacity: .22; }
+  .lead { font-size: clamp(1.02rem, 1.4vw, 1.25rem); line-height: 1.6; color: theme('colors.graphite'); }
+  .prose-body { font-size: 1.02rem; line-height: 1.78; color: theme('colors.graphite'); }
+  .eyebrow { display: inline-flex; align-items: center; gap: 0.7em;
+             font-size: 0.72rem; font-weight: 500; text-transform: uppercase;
+             letter-spacing: 0.22em; color: theme('colors.bronze'); }
+  .eyebrow::before { content: ''; width: 1.8rem; height: 1px; background: currentColor; opacity: .6; flex: none; }
+  .eyebrow--center::before { display: none; }
+  /* Le fil d'Ariane emprunte la graisse et l'interlettrage du sur-titre,
+     mais ni son filet ni son terre-cuite : il précède le sur-titre, et deux
+     accents de même force à la suite se disputeraient l'œil. `faint` tient
+     le seuil AA sur le calcaire (4,6:1) comme sur le sable. */
+  /* `flex` et non `inline-flex` : le fil occupe sa propre ligne, le
+     sur-titre reprend sous lui. Hérité tel quel, il se serait posé à sa
+     suite, sur la même ligne. */
+  .eyebrow--trail { display: flex; margin-bottom: 0.9rem; color: theme('colors.faint'); }
+  .eyebrow--trail::before { display: none; }
+  /* La barre est `aria-hidden` — la structure en liste dit déjà la
+     hiérarchie — mais elle reste du texte à l'écran : elle prend donc le
+     gris du fil, et non un filet, qui tombait à 1,46:1 sur le calcaire. */
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ---------- Boutons (discrets, sur-mesure) ---------- */
+  .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.6em;
+         font-family: theme('fontFamily.sans'); font-size: 0.78rem; font-weight: 500;
+         text-transform: uppercase; letter-spacing: 0.16em; padding: 0.95rem 1.6rem;
+         border: 1px solid transparent; border-radius: 1px; cursor: pointer;
+         transition: background .5s var(--ease), color .5s var(--ease),
+                     border-color .5s var(--ease), transform .35s var(--ease); }
+  .btn:active { transform: translateY(1px); }
+  .btn-ghost { border-color: theme('colors.hair'); color: theme('colors.ink'); }
+  .btn-ghost:hover { border-color: theme('colors.ink'); background: theme('colors.ink'); color: theme('colors.bone'); }
+  .btn-primary { background: theme('colors.ink'); border-color: theme('colors.ink'); color: theme('colors.bone'); }
+  .btn-primary:hover { background: theme('colors.bronze-dk'); border-color: theme('colors.bronze-dk'); }
+  .btn-light { border-color: rgba(243,238,226,.35); color: theme('colors.bone'); }
+  .btn-light:hover { background: theme('colors.bone'); color: theme('colors.ink'); border-color: theme('colors.bone'); }
+
+  /* lien fléché animé */
+  .link-arrow { display: inline-flex; align-items: center; gap: 0.5em; font-size: 0.8rem; font-weight: 500;
+                text-transform: uppercase; letter-spacing: 0.14em; color: theme('colors.ink'); }
+  .link-arrow svg { transition: transform .55s var(--ease); flex: none; }
+  .link-arrow:hover svg { transform: translateX(6px); }
+
+  /* ---------- Relève de libellé ----------
+     Le libellé monte, son double le remplace par le bas. Ce double n'est pas
+     un second nœud : `text-shadow` peint la même chaîne une hauteur de ligne
+     plus bas, dans la couleur courante. Rien à dupliquer, rien à tenir à jour,
+     et le texte reste une seule chaîne pour la sélection comme pour les
+     lecteurs d'écran. Le décalage vaut exactement `line-height` : les deux
+     états se superposent au pixel près.
+
+     Le balisage est posé au chargement (`rollLabels`) ; sans JS, le libellé
+     reste un texte immobile — l'effet est un supplément, jamais un prérequis. */
+  .roll { display: inline-block; overflow: hidden; line-height: 1.3; vertical-align: bottom; }
+  .roll > span { display: block; text-shadow: 0 1.3em; transition: transform .62s var(--ease); }
+  .btn:hover .roll > span,
+  a:hover .roll > span,
+  a:focus-visible .roll > span { transform: translateY(-1.3em); }
+
+  /* lien souligné révélé */
+  .ul-link { position: relative; }
+  .ul-link::after { content:''; position:absolute; left:0; bottom:-2px; height:1px; width:100%;
+                    background: currentColor; transform: scaleX(0); transform-origin: right;
+                    transition: transform .5s var(--ease); }
+  .ul-link:hover::after, .ul-link.is-active::after { transform: scaleX(1); transform-origin: left; }
+
+  /* ---------- Champs (underline, minimalistes) ---------- */
+  .field { display: flex; flex-direction: column; gap: 0.5rem; }
+  .field > span { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.16em; color: theme('colors.muted'); }
+  .field input, .field select, .field textarea, .input {
+    width: 100%; background: transparent; border: 0; border-bottom: 1px solid theme('colors.hair');
+    padding: 0.6rem 0; font: inherit; font-size: 0.95rem; color: theme('colors.ink'); border-radius: 0;
+    transition: border-color .4s var(--ease); }
+  .field textarea { resize: vertical; }
+  .field input:focus, .field select:focus, .field textarea:focus, .input:focus {
+    border-color: theme('colors.ink'); }
+  /* `outline: none` sur `:focus` supprimait aussi l'anneau du clavier : le
+     seul repère restant était le passage d'un filet d'un poil de large du
+     sable à l'encre. On ne l'efface donc qu'à la souris, où le filet suffit
+     et où l'anneau ne ferait que salir le formulaire. */
+  .field input:focus:not(:focus-visible), .field select:focus:not(:focus-visible),
+  .field textarea:focus:not(:focus-visible), .input:focus:not(:focus-visible) {
+    outline: none; }
+  /* Le champ de date fait exception : le focus y descend dans un segment
+     interne du composant natif, et le navigateur cesse alors d'annoncer
+     `:focus-visible` sur le champ lui-même. Sans cette ligne, il serait le
+     seul du formulaire à ne rien montrer sous la tabulation. */
+  .field input[type="date"]:focus { outline: 2px solid theme('colors.bronze'); outline-offset: 3px; }
+  .field--dark input[type="date"]:focus { outline-color: theme('colors.bronze-lt'); }
+  /* Sur la photographie, un libellé à demi transparent disparaît dès que le
+     fond s'éclaircit. Ces valeurs sont le minimum qui tienne encore le seuil
+     AA une fois le voile appliqué. */
+  .field--dark > span { color: rgba(243,238,226,.78); }
+  .field--dark input, .field--dark select, .field--dark textarea {
+    color: theme('colors.bone'); border-color: theme('colors.hair-dk'); }
+  .field--dark input:focus, .field--dark select:focus, .field--dark textarea:focus { border-color: theme('colors.bone'); }
+  .field--dark ::placeholder { color: rgba(243,238,226,.62); }
+  .form-note { margin-top: .9rem; font-size: .82rem; color: theme('colors.bronze-dk'); }
+  .field--dark ~ .form-note, form[data-form] .form-note { color: #D8A765; }
+}
+
+/* ============================================================
+   Animations — amélioration progressive : sans JS, tout reste lisible.
+   ============================================================ */
+@layer utilities {
+  /* ⚠️ `data-reveal` et `data-reveal-img` ont disparu du site, et ce n'est
+     pas un ménage : c'était UN fondu en montée de 22 px posé indistinctement
+     sur un titre, une photographie, un bouton et un chiffre. C'est cette
+     indistinction — la même entrée pour des choses qui ne se ressemblent
+     pas — qui donnait au site son air de gabarit. Chaque rôle a désormais
+     son geste, et un seul : voir « LA SÉQUENCE » plus bas.
+     Ne pas les réintroduire au prétexte qu'un bloc « n'a pas d'animation » :
+     s'il n'en a pas, c'est qu'il lui manque un ACTEUR dans la table de
+     `sequence.ts`, pas un fondu de secours. */
+
+  .hover-zoom { overflow: hidden; }
+  .hover-zoom img { transition: transform 1.3s var(--ease), filter 1.3s var(--ease),
+                                translate .55s var(--ease); }
+  .hover-zoom:hover img, a:hover .hover-zoom img, a:focus-visible .hover-zoom img { transform: scale(1.05); }
+
+  /* Le masque des lignes de titre. Il reste ici parce qu'il est STRUCTUREL :
+     c'est la fenêtre dans laquelle la ligne monte, et le scrub a besoin
+     qu'elle existe. Le déplacement, lui, appartient au geste `titre` — s'il
+     était écrit ici aussi, les deux s'additionneraient et la ligne partirait
+     deux fois trop bas. Sans JS, aucun décalage n'est posé : le titre se lit
+     normalement. */
+  .js [data-split] { --li: 0; }
+  .js .split-reveal .line { display: block; overflow: hidden; padding-bottom: 0.12em; margin-bottom: -0.12em; }
+  .js .split-reveal .line > span { display: block; }
+
+  /* ---------- Grille attentive ----------
+     Survoler une carte estompe ses voisines. Le geste ne déplace rien, ne
+     grossit rien : il retire seulement du contraste autour de ce que l'œil
+     vise déjà. C'est la même idée que la sélection confidentielle — on ne
+     montre qu'une adresse à la fois.
+
+     `:has` plutôt que `:hover` sur la grille : sans lui, traverser la
+     gouttière entre deux cartes suffirait à toutes les éteindre. Ici, rien ne
+     bouge tant qu'une carte n'est pas réellement visée. */
+  @media (hover: hover) {
+    [data-focus] > * { transition: opacity .55s var(--ease); }
+    [data-focus]:has(> *:hover) > *:not(:hover),
+    [data-focus]:has(> *:focus-visible) > *:not(:focus-visible) { opacity: .42; }
+  }
+
+  /* Filet de séparation entre deux sections de même fond. */
+  .rule-top { border-top: 1px solid theme('colors.hair'); }
+
+
+
+  /* ---------- Le rideau d'ouverture ----------
+     Deux panneaux d'encre qui se retirent vers les bords, exactement comme
+     ceux du menu : une seule grammaire pour entrer dans le site et pour y
+     naviguer. Il ne retarde rien — la page est peinte dessous et les
+     panneaux partent dès la première image. `pointer-events: none` de bout
+     en bout : il n'attrape jamais un clic, même pendant sa sortie.
+
+     Hors première visite (`html.intro` absente), il n'existe pas du tout :
+     pas de nœud peint, pas d'animation à composer. */
+  .veil { display: none; }
+  html.intro .veil {
+    display: block; position: fixed; inset: 0; z-index: 200; pointer-events: none;
+  }
+  html.intro .veil::before, html.intro .veil::after {
+    content: ''; position: absolute; top: 0; bottom: 0; width: 50.5%;
+    background: theme('colors.ink');
+    animation: veil-part 1.15s var(--ease-expo) .12s both;
+  }
+  html.intro .veil::before { left: 0; --sens: -1; }
+  html.intro .veil::after { right: 0; --sens: 1; }
+  @keyframes veil-part {
+    from { transform: translate3d(0, 0, 0); }
+    to   { transform: translate3d(calc(var(--sens) * 100%), 0, 0); }
+  }
+
+  /* ---------- L'atmosphère du hero ----------
+     Le canevas se pose sur la photographie sans la remplacer : l'image reste
+     ce que mesure le LCP. Il n'apparaît qu'une fois sa texture téléversée
+     (`.is-live`), et le fondu d'une seconde et demie couvre le raccord — les
+     deux à trois pixels d'écart entre le recadrage CSS et celui du nuanceur
+     ne se voient pas à cette vitesse. */
+  .atmo {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    opacity: 0; pointer-events: none;
+    transition: opacity 1.5s var(--ease);
+  }
+  [data-atmosphere].is-live .atmo { opacity: 1; }
+  /* La vidéo a pris le relais : elle recouvre tout, le calque se retire. */
+  [data-atmosphere].is-yielded .atmo { opacity: 0; }
+
+  /* ---------- Le curseur sur-mesure ----------
+     Monté par `scripts/cursor.ts`, jamais sur écran tactile ni en mouvement
+     réduit. La position vient de `translate`, la contraction du clic de
+     `scale` : deux propriétés indépendantes, que le `transform` de centrage
+     ne peut donc pas écraser. */
+  .cur {
+    position: fixed; top: 0; left: 0; z-index: 500;
+    width: 2.6rem; height: 2.6rem; margin: -1.3rem 0 0 -1.3rem;
+    display: grid; place-items: center; pointer-events: none;
+    opacity: 0; transition: opacity .35s ease, scale .3s var(--ease);
+  }
+  .cur.is-on { opacity: 1; }
+  .cur.is-down { scale: .82; }
+
+  .cur-ring {
+    position: absolute; inset: 0; margin: auto;
+    width: .55rem; height: .55rem; border-radius: 50%;
+    background: #fff; mix-blend-mode: difference;
+    transition: width .45s var(--ease), height .45s var(--ease),
+                opacity .35s var(--ease);
+  }
+  .cur.is-lien .cur-ring { width: 2.2rem; height: 2.2rem; }
+  /* Sur une photographie, le disque doré prend la place : l'anneau inversé
+     s'efface pour ne pas trouer le fond derrière le libellé. */
+  .cur.is-photo .cur-ring { opacity: 0; }
+
+  .cur-l {
+    display: grid; place-items: center;
+    width: 5.1rem; height: 5.1rem; border-radius: 50%;
+    background: theme('colors.gold'); color: theme('colors.ink');
+    font-family: theme('fontFamily.sans'); font-size: .6rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: .18em;
+    opacity: 0; scale: .35;
+    transition: opacity .4s var(--ease), scale .5s var(--ease);
+  }
+  .cur.is-photo .cur-l { opacity: 1; scale: 1; }
+
+  /* Le curseur du système ne disparaît QUE sur les photographies : ailleurs,
+     il n'y a rien à gagner à retirer un repère que tout le monde connaît. */
+  html.has-cur .gal,
+  html.has-cur .hover-zoom img,
+  html.has-cur [data-atmosphere] { cursor: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important; scroll-behavior: auto !important;
+  }
+  /* La séquence ne se monte pas sous `reduce` — voir son propre bloc, qui
+     défait ce qui aurait pu être monté avant un changement de réglage. Ne
+     reste ici que le retrait du hero, écrit par le script en ligne. */
+  .js .split-reveal .line > span, .js [data-hero-out] {
+    opacity: 1 !important; transform: none !important; clip-path: none !important;
+  }
+  /* Sans transition, la relève de libellé ne relèverait rien : le texte
+     sauterait hors du cadre. On la neutralise plutôt que de l'accélérer. */
+  .roll { overflow: visible; }
+  .roll > span { text-shadow: none; transform: none !important; }
+  /* Les scripts ne montent ni le calque ni le curseur en mouvement réduit ;
+     ces deux lignes couvrent le cas où la préférence change en cours de route. */
+  .atmo, .cur { display: none !important; }
+  .hover-zoom img { translate: none !important; }
+}
+
+/* ============================================================
+   Transitions de page (View Transitions API) — discrètes
+   ============================================================ */
+@media (prefers-reduced-motion: no-preference) {
+  ::view-transition-old(root) { animation: ia-vt-out .32s var(--ease) both; }
+  ::view-transition-new(root) { animation: ia-vt-in .5s var(--ease) both; }
+  @keyframes ia-vt-out { to { opacity: 0; } }
+  @keyframes ia-vt-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+}
+
+/* ============================================================
+   Lightbox (fiche bien)
+   ============================================================ */
+#lightbox {
+  position: fixed; inset: 0; z-index: 100; display: grid; place-items: center;
+  padding: clamp(1rem, 4vw, 3rem); background: rgba(28,42,32,.96);
+  opacity: 0; transition: opacity .4s var(--ease);
+}
+#lightbox.is-open { opacity: 1; }
+#lightbox[hidden] { display: none; }
+#lightbox img { max-height: 84vh; max-height: 84svh; max-width: 100%; object-fit: contain; }
+.lb-btn {
+  position: absolute; display: grid; place-items: center; width: 3rem; height: 3rem;
+  color: rgba(243,238,226,.65); transition: color .3s ease;
+}
+.lb-btn:hover { color: #F3EEE2; }
+
+/* ============================================================
+   LE MOUVEMENT — la part CSS
+   ------------------------------------------------------------
+   Tout ce qui bouge est piloté par GSAP (`src/scripts/anim.ts`). Ce bloc
+   ne contient que ce que le script ne peut pas faire seul : les états de
+   départ qui doivent exister AVANT le premier rendu, et les découpes que
+   GSAP anime ensuite par variable.
+
+   ⚠️ Rien ici ne masque un contenu par défaut. Un état masqué en CSS est
+   un contenu perdu si le script échoue ou ne se charge pas. C'est GSAP
+   qui pose l'état de départ, au montage, et lui seul.
+   ============================================================ */
+
+/* ---------- L'enveloppe de défilement ----------
+   ScrollSmoother déplace `#smooth-content` par transformation. Sans
+   `overflow: hidden` sur l'enveloppe, la page garde sa barre native en
+   plus du défilement lissé. */
+#smooth-wrapper { overflow: hidden; }
+
+/* ---------- La capsule ----------
+   Le cadre s'ouvre depuis une fente arrondie. On anime `--capsule`, une
+   valeur unique en pourcentage, et le CSS recompose la découpe : deux
+   `inset()` complets s'interpolent mal d'un navigateur à l'autre. */
+[data-anim='capsule'] {
+  --capsule: 0%;
+  clip-path: inset(var(--capsule) var(--capsule) var(--capsule) var(--capsule)
+             round calc(var(--capsule) * 1.6));
+  will-change: clip-path;
+}
+
+/* ---------- Le balayage ----------
+   Même précaution, sur un seul bord : le cadre s'ouvre d'un côté à
+   l'autre. `--balayage` va de 100 % (fermé) à 0 % (ouvert). */
+[data-anim='balayage'] {
+  --balayage: 0%;
+  clip-path: inset(0 var(--balayage) 0 0);
+  will-change: clip-path;
+}
+/* Le sens, enfin réel. `anim.ts` l'annonçait depuis toujours en commentaire
+   — « le sens est déclaré (data-anim-sens) » — mais rien ne le lisait :
+   tout balayait de gauche à droite. La valeur animée ne change pas, seul
+   le bord qu'elle mord change, et le CSS suffit donc à le dire.
+
+   Ce que ça permet : une image posée contre le bord droit de la page
+   s'ouvre depuis la droite. Ouverte vers la droite, elle semblerait sortir
+   du texte au lieu d'entrer depuis la marge. */
+[data-anim='balayage'][data-anim-sens='gauche'] { clip-path: inset(0 0 0 var(--balayage)); }
+
+/* ---------- La partition de la galerie ----------
+   Les cellules portent la même découpe que la capsule : le geste
+   `partition` (anim.ts) l'ouvre rangée par rangée. C'est un sélecteur
+   d'ensemble et non une classe posée sur chaque cellule — la rangée est
+   l'unité, jusque dans le CSS. */
+[data-anim='partition'] > * {
+  --capsule: 0%;
+  clip-path: inset(var(--capsule) var(--capsule) var(--capsule) var(--capsule)
+             round calc(var(--capsule) * 1.6));
+  will-change: clip-path;
+}
+
+/* Le rapport du cadre vient de la partition, en variable — `sizes` et
+   `aspect-ratio` sont les deux seules choses qu'une cellule ait besoin de
+   savoir d'elle-même.
+
+   ⚠️ Au téléphone la partition n'a pas lieu : tout est empilé sur une
+   colonne, et un panorama 2:1 y deviendrait une bande de 40 px de haut.
+   Le rapport déclaré ne prend donc qu'à partir de la tablette ; en deçà,
+   toutes les cellules partagent le 4:3 des photographies d'origine. */
+.part-cell { aspect-ratio: 4 / 3; background: theme('colors.sand'); }
+@media (min-width: 768px) {
+  .part-cell { aspect-ratio: var(--ar, 4 / 3); }
+}
+
+/* ---------- La réserve de la dérive ----------
+   `deriveImages()` fait glisser l'image de −6 % à +6 % dans son cadre. Une
+   image qui remplit exactement ce cadre (`h-full object-cover`) découvre
+   donc le fond, en haut au début de la course et en bas à la fin — ce que
+   masquait jusqu'ici la couleur posée derrière, sans le corriger.
+
+   116 % de hauteur remontés de 8 % centrent l'image avec 8 % de réserve de
+   chaque côté, soit davantage que les 6,96 % (6 % de 116) que consomme la
+   course. Le cadre reste couvert d'un bout à l'autre. */
+[data-derive] img { height: 116%; margin-top: -8%; }
+
+/* ---------- Les lignes de titre ----------
+   SplitText pose lui-même le masque (`mask: 'lines'`). Il ne reste qu'à
+   garantir que la ligne est un bloc — sans quoi le `yPercent` se
+   calculerait sur une hauteur d'inline, donc sur rien. */
+.ligne { display: block; }
+
+/* ---------- Mouvement réduit ----------
+   Le script ne monte rien du tout sous cette préférence : ni découpage de
+   titre, ni déclencheur, ni défilement lissé. Ce bloc n'est qu'une
+   ceinture — il neutralise les découpes au cas où la préférence
+   changerait en cours de visite. */
+@media (prefers-reduced-motion: reduce) {
+  [data-anim='capsule'], [data-anim='balayage'],
+  [data-anim='partition'] > * { clip-path: none; }
+  /* La dérive ne joue pas : l'image reprend la taille exacte de son cadre,
+     sinon la réserve resterait visible comme un décadrage permanent. */
+  [data-derive] img { height: 100%; margin-top: 0; }
+}

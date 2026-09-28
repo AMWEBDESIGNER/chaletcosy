@@ -1,0 +1,697 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Photo from '../components/Photo.astro';
+import Tile from '../components/Tile.astro';
+import Reserver from '../components/Reserver.astro';
+import FormeReservation from '../components/FormeReservation.astro';
+import { VILLA, GALLERY } from '../lib/villa';
+
+/* ============================================================
+   L'accueil suit la structure de villadellatorre.it/en, relevée
+   section par section sur la capture du site :
+
+     bannière vidéo → titre centré → citation en italique →
+     composition à trois colonnes → image pleine largeur →
+     deux tuiles → image en galet avec texte dedans →
+     texte centré étroit → deux tuiles →
+     bloc teinté (titre, texte, deux tuiles) → clôture
+
+   Deux mesures seulement, comme chez eux : 87,5 rem pour la page,
+   56,25 rem pour ce qui se lit au centre (leurs `strip--normal` et
+   `strip--narrow`). Aucun repère numéroté, aucune grille de chiffres
+   dans le corps de page : leur rythme alterne texte centré, image,
+   et paires de tuiles — rien d'autre.
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   Pour qui ?
+
+   Le chalet n'a qu'une chambre : la liste des pièces ne dirait rien.
+   Ce qui le distingue, c'est À QUI il s'adresse — et l'annonce le dit
+   en toutes lettres : curistes, saisonniers, randonneurs, professionnels
+   en déplacement. La table des matières de l'accueil nomme donc ces
+   voyageurs, chacun avec la photographie qui lui répond.
+
+   ⚠️ Cette section s'écarte de la structure de villadellatorre relevée
+   plus haut, qui n'alterne que texte centré, image et paires de tuiles.
+   L'écart est hérité du gabarit et assumé.
+   ------------------------------------------------------------ */
+const VOYAGEURS = [
+  { nom: 'Les curistes', meta: 'Thermes à quelques minutes', href: '/digne-les-bains',
+    img: '/images/chalet/salon-lumiere.webp' },
+  { nom: 'Les randonneurs', meta: 'Au pied de la montagne', href: '/digne-les-bains',
+    img: '/images/chalet/vue-montagne.webp' },
+  { nom: 'Les cyclistes', meta: 'Vélos à disposition', href: '/le-chalet',
+    img: '/images/chalet/allee-chalet.webp' },
+  { nom: 'Les télétravailleurs', meta: 'Bureau et wifi haut débit', href: '/le-chalet',
+    img: '/images/chalet/bureau.webp' },
+  { nom: 'Les amoureux de la nature', meta: 'Jardin et montagne', href: '/galerie#le-jardin',
+    img: '/images/chalet/fleurs-coreopsis.webp' },
+];
+---
+<Layout image="/images/og.jpg">
+  <!-- ═══════════ I. LE FRONTISPICE ═══════════
+       Le nom porte le premier écran. Il n'est pas posé SUR l'image : il est
+       composé AVEC elle, sur une grille de fiche de projet — le nom au
+       centre optique, les données en pied, un filet qui les sépare. C'est
+       la mise en page d'une planche d'architecte, pas d'une bannière.
+
+       Le nom est découpé mot par mot puis caractère par caractère : chaque
+       lettre monte de son masque pendant que l'interlettrage se desserre
+       d'un cran. C'est ce desserrement — et non la montée — qui donne
+       l'impression que le nom se POSE. Détail dans `nomCinema()`. -->
+  <section data-hero="dark" data-frontispice class="fronti">
+    <div class="fronti__fond">
+      <div data-speed="0.88" class="fronti__media">
+        {/* Ni vidéo ni atmosphère WebGL ici, contrairement au gabarit : la
+            photographie à contre-jour porte déjà la lumière qui bouge. */}
+        <Photo src="/images/chalet/chalet-contre-jour.webp" sizes="pleine"
+               alt="Le chalet en bois à contre-jour, le soleil filtrant entre les pins"
+               fetchpriority="high" decoding="async" class="h-full w-full object-cover" />
+      </div>
+      <div class="fronti__voile"></div>
+      <div class="hero-grain pointer-events-none absolute inset-0"></div>
+    </div>
+
+    <div class="fronti__grille mesure">
+      <p class="fronti__lieu" data-fronti-lieu>
+        <span>Digne-les-Bains</span><i aria-hidden="true"></i><span>Haute-Provence</span>
+      </p>
+
+      {/* Un seul `h1` pour le référencement ; le découpage est fait par le
+          script, qui repose le texte à l'identique. Sans JS, le nom reste un
+          titre lisible — c'est la seule chose qui compte ici. */}
+      <h1 class="fronti__nom" data-nom>Chalet Cosy</h1>
+
+      <p class="fronti__dit" data-fronti-dit>
+        Un chalet de bois tout confort au pied de la montagne&nbsp;— à deux pas des thermes.
+      </p>
+
+      {/* L'appel à l'action, nommé par sa DESTINATION. Le frontispice n'en
+          avait aucun : le premier « Réserver » de la page était celui de
+          l'en-tête, et il ne dit pas où il mène. La réservation se fait sur
+          Airbnb — l'annonce est le seul canal — et le nommer évite au
+          visiteur la surprise d'un site tiers qui s'ouvre.
+
+          `btn-light` et non `btn-primary` : posé sur la photographie, le
+          bouton plein d'encre se confondrait avec le voile du hero. Le
+          contour clair tient sur le calcaire du ciel comme sur les pins —
+          c'est la règle des fonds photographiques (bone ou bronze-lt,
+          jamais la sauge, qui se perd dans le feuillage). */}
+      <a href={VILLA.airbnb} target="_blank" rel="noopener"
+         class="btn btn-light fronti__cta" data-fronti-cta>
+        Réserver sur Airbnb
+      </a>
+
+      <dl class="fronti__fiche" data-fronti-fiche>
+        <div><dt>Surface</dt><dd>{VILLA.surface} m²</dd></div>
+        <div><dt>Voyageurs</dt><dd>Quatre</dd></div>
+        <div><dt>Chambre</dt><dd>Une</dd></div>
+        <div><dt>Vélos</dt><dd>Fournis</dd></div>
+      </dl>
+    </div>
+
+    <div class="hero-scroll" aria-hidden="true">
+      <span class="hero-scroll__word">Défiler</span>
+      <span class="hero-scroll__rail"><i></i></span>
+    </div>
+  </section>
+
+  <!-- ═══════════ II. L'ÉNONCÉ ═══════════
+       Une phrase, et rien autour. Elle n'annonce pas le chalet — elle le
+       situe. Le verbe est au présent, la phrase tient en deux souffles :
+       c'est ce qui la distingue d'un slogan. -->
+  <section class="bande-cite">
+    <div class="mesure mesure--etroite">
+      <p class="enonce" data-anim="lignes">
+        Un chalet de mélèze posé dans un jardin, au pied des montagnes de Digne.
+        On y entend le vent dans les arbres, les oiseaux, et rien d’autre.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ IV. LA COMPOSITION À TROIS COLONNES ═══════════
+       Le dispositif exact de Torre : une image haute à gauche, le texte
+       au centre décalé vers le bas, deux images empilées à droite et
+       alignées à droite. Aucune colonne ne commence à la même hauteur. -->
+  <section class="bande">
+    <div class="mesure">
+      <div class="editorial" data-colonnes>
+        <figure class="editorial__tall hover-zoom">
+          <Photo src="/images/chalet/coursive-lumiere.webp" sizes="tiers" loading="lazy" decoding="async"
+                 alt="La coursive en bois qui longe le chalet, éclairée à la nuit tombée"
+                 class="h-full w-full object-cover" />
+        </figure>
+
+        <div class="editorial__text">
+          <p class="prose-body">
+            Du bois partout, dedans comme dehors : un cadre apaisant, entre nature et
+            thermes, pensé pour les curistes, les randonneurs, les saisonniers et les
+            professionnels en déplacement.
+          </p>
+          <p class="prose-body mt-5">
+            {VILLA.surface} m² de plain-pied. Une chambre, un canapé convertible, une salle
+            d’eau. Jusqu’à {VILLA.guests} voyageurs. On loue le chalet entier.
+          </p>
+          <a href="/le-chalet" class="lire mt-8">Visiter le chalet</a>
+        </div>
+
+        <div class="editorial__stack">
+          <figure class="hover-zoom">
+            <Photo src="/images/chalet/terrasse-table.webp" sizes="tiers" loading="lazy" decoding="async"
+                   alt="La terrasse en bois, sa table en verre et ses chaises vertes face à la montagne"
+                   class="h-full w-full object-cover" />
+          </figure>
+          <figure class="hover-zoom">
+            <Photo src="/images/chalet/fleurs-coreopsis.webp" sizes="tiers" loading="lazy" decoding="async"
+                   alt="Un massif de coréopsis jaunes et rouges dans le jardin"
+                   class="h-full w-full object-cover" />
+          </figure>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ V. L'IMAGE PLEINE LARGEUR ═══════════ -->
+  <section class="bande">
+    <div class="mesure">
+      <figure data-anim="capsule" data-derive class="hover-zoom aspect-[16/9] overflow-hidden bg-sand">
+        <Photo src="/images/chalet/chalet-terrasse.webp" sizes="pleine" loading="lazy" decoding="async"
+               alt="Le chalet en mélèze et sa grande terrasse, au soleil du matin"
+               class="h-full w-full object-cover" />
+      </figure>
+    </div>
+  </section>
+
+  <!-- ═══════════ V bis. POUR QUI ? ═══════════
+       Une table des matières, pas une rangée de vignettes : des noms en
+       très grand corps, et UNE seule image, qui suit le curseur et change
+       de ligne en ligne.
+
+       La liste se lit entièrement sans souris : chaque ligne est un lien,
+       et la vignette n'est qu'un supplément. Les photographies restent
+       dans le HTML ; seul leur conteneur est déplacé sur `body` au
+       montage — un élément `position: fixed` laissé dans `#smooth-content`
+       défilerait avec la page, ScrollSmoother le déplaçant par
+       transformation. -->
+  <section class="bande bg-ink text-bone">
+    <div class="mesure">
+      <div class="flex flex-wrap items-end justify-between gap-x-8 gap-y-5">
+        <h2 data-anim="lignes" class="h-lg">Un chalet,<br />cinq façons d’y venir.</h2>
+        <a href="/digne-les-bains" class="link-arrow !text-bone">
+          Voir les environs
+          <svg width="26" height="8" viewBox="0 0 26 8" fill="none" aria-hidden="true">
+            <path d="M0 4h24M21 1l3 3-3 3" stroke="currentColor" stroke-width="1.2" />
+          </svg>
+        </a>
+      </div>
+
+      <div data-index class="mt-12">
+        {VOYAGEURS.map((v, i) => (
+          <a href={v.href} class="index-row">
+            <span class="idx num">{String(i + 1).padStart(2, '0')}</span>
+            <span>{v.nom}</span>
+            <span class="meta">{v.meta}</span>
+          </a>
+        ))}
+
+        {/* `aria-hidden` : la vignette illustre ce que la ligne dit déjà. Les
+            `alt` restent vides pour la même raison. */}
+        <div class="index-peek" aria-hidden="true">
+          {VOYAGEURS.map((v) => (
+            <Photo src={v.img} sizes="vignette" alt="" loading="lazy" decoding="async" />
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ VI. DEUX TUILES ═══════════
+       Chez Torre les tuiles vont toujours par deux, jamais par trois. -->
+  <section class="bande">
+    <div class="mesure">
+      <div class="duo">
+        <Tile href="/le-chalet" img="/images/chalet/salon-lumiere.webp"
+              alt="Le salon baigné de soleil, canapé blanc et table ronde en bois"
+              title="Le chalet" cta="Parcourir le chalet" sizes="moitie"
+              abstract="Une pièce à vivre lumineuse, une chambre, un coin bureau, et une terrasse face à la montagne." />
+        <Tile href="/galerie" img="/images/chalet/chalet-face.webp"
+              alt="Le chalet de face, l’escalier de la terrasse et l’allée de gravier"
+              title="La galerie" cta={`Voir les ${GALLERY.length} photographies`} sizes="moitie"
+              abstract="Le chalet entier, de l’allée au jardin." />
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ VII. LE GALET ═══════════
+       Torre pose ici une image très arrondie — `border-radius: 40vw` —
+       avec le texte à l'intérieur, centré. C'est leur seule forme molle
+       de toute la page, et elle ne sert qu'une fois. -->
+  <section class="bande">
+    <div class="mesure">
+      <div class="galet">
+        <Photo src="/images/digne/vue-digne.webp" sizes="pleine" loading="lazy" decoding="async"
+               alt="Digne-les-Bains dans sa vallée, entourée de montagnes boisées"
+               class="h-full w-full object-cover" />
+        <div class="galet__texte">
+          <h2 class="galet__titre">Digne-les-Bains</h2>
+          <p class="galet__dit" data-anim="montee">
+            Capitale de la lavande, ville thermale et ensoleillée, entre Alpes et Provence.
+            Et à deux heures de la Côte d’Azur.
+          </p>
+          <a href="/digne-les-bains" class="btn btn-light mt-7">Voir les environs</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- ═══════════ VII bis. LA BANDE ═══════════
+       Une file de photographies qui défile de côté pendant qu'on descend.
+       C'est le seul endroit du site où le défilement est détourné, et il
+       l'est pour MONTRER, pas pour retenir : un pixel de molette avance la
+       bande d'un pixel, et la section se libère dès la dernière image.
+       Elle tient la place d'une galerie sans en ouvrir une : on traverse le
+       chalet d'un geste. -->
+  <section data-bande class="bande-fil">
+    <div class="bande-fil__piste" data-bande-piste>
+      <p class="bande-fil__dit">
+        <span class="bande-fil__sur">Le chalet</span>
+        Trente mètres carrés,<br />tout le nécessaire.
+      </p>
+      {[
+        ['/images/chalet/salon-canape.webp', 'Le coin salon : canapé, table basse ronde et tableaux de paysages', 'La pièce à vivre'],
+        ['/images/chalet/cuisine-entree.webp', 'La cuisine équipée et la porte d’entrée vitrée', 'La cuisine'],
+        ['/images/chalet/chambre-linge-blanc.webp', 'Le lit double dressé de blanc, tête de lit en bois', 'La chambre'],
+        ['/images/chalet/bureau.webp', 'Le coin bureau tout en pin et sa carte du monde', 'Le bureau'],
+        ['/images/chalet/terrasse-table.webp', 'La terrasse en bois et ses chaises vertes face à la montagne', 'La terrasse'],
+        ['/images/chalet/jardin-pelouse.webp', 'La pelouse et la montagne sous le ciel bleu', 'Le jardin'],
+      ].map(([src, alt, nom]) => (
+        <figure class="bande-fil__vue">
+          <div class="bande-fil__cadre hover-zoom">
+            <Photo src={src} sizes="moitie" alt={alt} loading="lazy" decoding="async"
+                   class="h-full w-full object-cover" />
+          </div>
+          <figcaption class="bande-fil__nom">{nom}</figcaption>
+        </figure>
+      ))}
+    </div>
+  </section>
+
+  <!-- ═══════════ VIII. LE MANIFESTE ═══════════
+       L'accueil a trois moments d'énoncé, et celui-ci était le seul à ne
+       pas en être un. La section II compose en serif maigre à 2,35 rem, la
+       clôture en italique à 2,5 rem — et cette phrase-ci, placée entre les
+       deux et chargée de dire où l'on se trouve, tenait en corps de texte
+       à 1,02 rem. Elle passait donc pour une légende, quand elle est le
+       pivot de la page : c'est là que le chalet cesse d'être un intérieur
+       et devient un lieu.
+
+       Elle prend `.manifest`, qui l'emporte sur les deux autres — serif à
+       450, jusqu'à 2,6 rem — et dont l'italique bronze porte la chute.
+       C'est ce qui donne enfin une HIÉRARCHIE aux trois énoncés au lieu
+       d'une alternance : le premier situe le chalet, celui-ci situe le
+       territoire, le dernier referme.
+
+       ⚠️ Le geste `lignes` n'est pas un ornement ajouté au passage : les
+       sections II et XI l'ont toutes deux, celle-ci était la seule à
+       retomber sur la montée par défaut de la passe automatique. -->
+  <section class="bande-cite">
+    <div class="mesure mesure--etroite">
+      <p class="manifest text-center" data-anim="lignes">
+        Deux pas pour gagner le centre-ville. Quelques minutes pour les thermes et le Musée
+        Promenade. Le reste du temps, le jardin se referme et l’on <em>n’entend plus que les oiseaux</em>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══════════ IX. DEUX TUILES ═══════════ -->
+  <section class="bande">
+    <div class="mesure">
+      <div class="duo">
+        <Tile href="/digne-les-bains" img="/images/digne/dalle-ammonites.webp"
+              alt="La dalle aux ammonites, un pan de roche couvert de fossiles spiralés"
+              title="Le Géoparc" cta="Suivre les fossiles" sizes="moitie"
+              abstract="La dalle aux ammonites, le Musée Promenade, la via ferrata du Rocher de Neuf-Heures : deux cents millions d’années à ciel ouvert." />
+        <Tile href="/digne-les-bains" img="/images/digne/lavande-valensole.webp"
+              alt="Rangs de lavande en fleurs sur le plateau de Valensole"
+              title="La lavande" cta="Partir sur le plateau" sizes="moitie"
+              abstract="Digne est la capitale de la lavande. En juillet, les champs du plateau de Valensole fleurissent à moins d’une heure de route." />
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ X. LE BLOC TEINTÉ ═══════════
+       Torre change de fond pour son dernier chapitre et y remet la même
+       suite : titre centré, texte, puis deux tuiles. -->
+  <section class="bande bg-sand">
+    <div class="mesure">
+      <h2 data-anim="lignes" class="titre-bloc">Le chalet entier, pour vous seuls.</h2>
+      <p class="prose-body mesure--etroite mt-7 text-center">
+        Une chambre, un canapé convertible, {VILLA.guests} voyageurs au plus. À la semaine
+        ou pour quelques nuits — et les longs séjours sont les bienvenus.
+      </p>
+
+      <div class="duo mt-14">
+        <Tile href={VILLA.airbnb} ext img="/images/chalet/chalet-fleurs.webp"
+              alt="Le chalet entre les arbres, fleurs mauves au premier plan"
+              title="Séjourner" cta="Voir les disponibilités" sizes="moitie"
+              abstract={`Arrivée ${VILLA.checkIn}. Départ ${VILLA.checkOut}.`} />
+        <Tile href="/contact" img="/images/chalet/bureau.webp"
+              alt="Le coin bureau tout en pin, plan de travail jaune et carte du monde"
+              title="Rester longtemps" cta="Demander un tarif" sizes="moitie"
+              abstract="Cure thermale, mission, saison : séjours de 28 nuits et plus acceptés. Tarifs sur demande." />
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════ X bis. LA RÉSERVATION ═══════════
+       Placée ICI et pas plus haut : elle demande des dates, et l'on ne
+       donne pas ses dates avant d'avoir vu le chalet. Tout ce qui précède
+       sert à ce qu'on arrive à ce bloc en sachant déjà si l'on veut venir.
+
+       Le direct et Airbnb y figurent ensemble, sans que l'un pousse
+       l'autre : ils s'adressent à deux personnes différentes. Détail dans
+       le composant. -->
+  <Reserver />
+  <FormeReservation />
+
+  <!-- ═══════════ XI. LA CLÔTURE ═══════════ -->
+  <section class="bande-cite">
+    <div class="mesure mesure--etroite text-center">
+      <p class="cite cite--fin" data-anim="lignes">
+        Dites-nous vos dates.<br />Nous répondons sous vingt-quatre heures.
+      </p>
+      <div class="mt-10 flex flex-wrap justify-center gap-4">
+        <a href={VILLA.airbnb} target="_blank" rel="noopener" class="btn btn-primary">Réserver le séjour</a>
+        <a href="/contact" class="btn btn-ghost">Nous écrire</a>
+      </div>
+      <p class="num mt-9 text-[0.74rem] uppercase tracking-[0.16em] text-muted">
+        ★ {VILLA.rating} · premiers avis de voyageurs sur Airbnb
+      </p>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  /* ---------- Les deux mesures de Torre ----------
+     87,5 rem pour la page, 56,25 rem pour ce qui se lit au centre.
+     Ce sont leurs valeurs exactes (`strip--normal`, `strip--narrow`) :
+     l'écart entre les deux est ce qui fait respirer leur accueil. */
+  .mesure { width: 100%; max-width: 87.5rem; margin-inline: auto; padding-inline: var(--gutter); }
+  .mesure--etroite { max-width: 56.25rem; margin-inline: auto; }
+
+  /* Trois hauteurs de bande, et pas une de plus : la pleine, celle du
+     texte centré (plus aérée, c'est là qu'on s'arrête), et celle du
+     titre. Le même `padding` partout était l'un des défauts relevés. */
+  .bande { padding-block: clamp(3.5rem, 7vw, 7rem); }
+  .bande-cite { padding-block: clamp(5rem, 11vw, 10rem); }
+  .bande-tit { padding-block: clamp(4.5rem, 9vw, 8rem) clamp(1rem, 2vw, 2rem); }
+
+  /* ---------- Le titre d'accueil ----------
+     Centré et seul. Chez Torre il tient sur deux lignes, la seconde
+     portant le nom du lieu. */
+  .titre-accueil {
+    font-family: theme('fontFamily.serif'); font-weight: 400;
+    font-size: clamp(2.4rem, 7vw, 5.6rem); line-height: 1.06;
+    letter-spacing: -0.022em; text-align: center;
+  }
+
+  .titre-bloc {
+    font-family: theme('fontFamily.serif'); font-weight: 400;
+    font-size: clamp(1.9rem, 4.4vw, 3.4rem); line-height: 1.08;
+    letter-spacing: -0.018em; text-align: center;
+    max-width: 22ch; margin-inline: auto;
+  }
+
+  /* ---------- La citation ----------
+     Italique, centrée, à la moitié du corps du titre — c'est le rapport
+     de Torre entre `strip__title1` et `strip__title3`. Les guillemets
+     sont français et font partie du texte : ils se sélectionnent et se
+     lisent à voix haute, ce qu'un `::before` décoratif ne ferait pas. */
+  .cite {
+    font-family: theme('fontFamily.serif'); font-style: italic; font-weight: 400;
+    font-size: clamp(1.35rem, 3.4vw, 2.5rem); line-height: 1.28;
+    letter-spacing: -0.012em; text-align: center; text-wrap: balance;
+  }
+  .cite--fin { font-size: clamp(1.2rem, 2.6vw, 1.9rem); color: theme('colors.graphite'); }
+
+  /* ---------- La composition à trois colonnes ---------- */
+  .editorial { display: grid; gap: clamp(2rem, 5vw, 3.5rem); }
+  .editorial__tall { overflow: hidden; aspect-ratio: 2 / 3; background: theme('colors.sand'); }
+  .editorial__stack { display: grid; gap: clamp(1.5rem, 3vw, 2.5rem); }
+  .editorial__stack figure { overflow: hidden; background: theme('colors.sand'); }
+  .editorial__stack figure:first-child { aspect-ratio: 4 / 3; }
+  .editorial__stack figure:last-child { aspect-ratio: 1 / 1; }
+
+  @media (min-width: 860px) {
+    .editorial { grid-template-columns: 0.8fr 1.2fr 0.8fr; align-items: start;
+                 gap: clamp(1.75rem, 3.5vw, 3rem); }
+    /* Le décalage : chaque colonne descend un peu plus que la précédente. */
+    .editorial__text { padding-top: clamp(3rem, 9vw, 7rem); }
+    .editorial__stack { padding-top: clamp(6rem, 16vw, 12rem); }
+  }
+
+  /* ---------- Le lien « lire la suite » ----------
+     Chez Torre, `read-more` est un libellé souligné qui pousse une flèche
+     à sa droite au survol. */
+  .lire {
+    display: inline-flex; align-items: center; gap: 0.6em;
+    font-family: theme('fontFamily.sans'); font-size: 0.74rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.16em; color: theme('colors.ink');
+    border-bottom: 1px solid theme('colors.hair'); padding-bottom: 0.5em;
+    transition: border-color .5s var(--ease-expo);
+  }
+  .lire::after { content: '→'; transition: transform .5s var(--ease-expo); }
+  .lire:hover { border-color: theme('colors.ink'); }
+  .lire:hover::after { transform: translateX(5px); }
+
+  /* ---------- Le galet ----------
+     La seule forme molle de la page, et elle ne sert qu'une fois. Torre
+     pousse le rayon à 40vw : à cette valeur, les angles disparaissent
+     entièrement et l'image devient un galet. Le texte vit dedans. */
+  /* Large et peu haute : à 16/11 elle occupait tout l'écran et rejetait son
+     propre texte hors champ. Le galet doit se lire d'un coup d'œil, texte
+     compris — c'est une respiration entre deux paires de tuiles, pas une
+     seconde bannière. */
+  .galet {
+    position: relative; display: grid; grid-template-areas: 'main';
+    overflow: hidden; border-radius: clamp(2rem, 14vw, 20rem);
+    aspect-ratio: 16 / 7; background: theme('colors.ink');
+  }
+  .galet :global(img) { grid-area: main; height: 100%; width: 100%; object-fit: cover; }
+  /* Le voile est indispensable : le texte est clair, et un paysage de
+     montagne en plein jour monte à des clartés où il tomberait sous le seuil AA. */
+  .galet::after {
+    content: ''; grid-area: main; background: rgb(28 42 32 / 0.5);
+  }
+  .galet__texte {
+    grid-area: main; z-index: 1; align-self: center; justify-self: center;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; color: theme('colors.bone');
+    padding: var(--gutter); max-width: 34rem;
+  }
+  .galet__titre {
+    font-family: theme('fontFamily.serif'); font-weight: 400;
+    font-size: clamp(2rem, 5.5vw, 4rem); line-height: 1; letter-spacing: -0.02em;
+  }
+  .galet__dit { margin-top: 1.1rem; font-size: 1.02rem; line-height: 1.6;
+                color: rgb(243 238 226 / 0.88); }
+  @media (max-width: 640px) {
+    .galet { aspect-ratio: 3 / 4; border-radius: clamp(1.5rem, 12vw, 6rem); }
+  }
+
+  /* ---------- Les tuiles, par deux ----------
+     Chez Torre elles vont toujours par paires. Trois de front, c'était
+     le motif que `PROMPT-ANTI-IA.md` proscrit ; deux, c'est une
+     alternative offerte, pas un catalogue. */
+  .duo { display: grid; gap: clamp(1rem, 2vw, 1.5rem); }
+  @media (min-width: 760px) { .duo { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+  /* En deux colonnes, chaque tuile fait près de 660 px de large : au format
+     4/5 d'origine elle montait à plus de 800 px de haut, et la meurtrière
+     laissait alors un grand vide d'encre entre la photographie et le
+     texte. On élargit le format et on descend la bande — l'image et le
+     titre se retrouvent, le bloc cesse de flotter. */
+  .duo :global(.tile) { aspect-ratio: 5 / 4; --clipV: 11%; --clipBase: 40%; }
+  @media (max-width: 759px) {
+    .duo :global(.tile) { aspect-ratio: 4 / 3; }
+  }
+
+
+
+  /* ═══════════ LE FRONTISPICE ═══════════
+     Grille de planche d'architecte : le lieu en tête, le nom au centre
+     optique, l'énoncé dessous, la fiche en pied. Trois graisses de gris et
+     une seule couleur — l'or du logo, sur le filet seulement. */
+  .fronti {
+    position: relative; min-height: 100svh; overflow: clip;
+    display: grid; align-content: center;
+    color: theme('colors.bone');
+    padding-block: calc(var(--header) + 3rem) clamp(6rem, 14vh, 9rem);
+  }
+  .fronti__fond { position: absolute; inset: 0; z-index: -1; }
+  .fronti__media { position: absolute; inset: 0; transform: scale(1.12); }
+  /* Le voile est plus dense en bas qu'en haut : le nom vit dans le tiers
+     médian, la fiche technique dans le tiers bas, et c'est elle qui a le
+     plus besoin d'un fond. */
+  .fronti__voile {
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(to top, rgb(28 42 32 / .92) 0%, rgb(28 42 32 / .60) 44%, rgb(28 42 32 / .66) 100%),
+      radial-gradient(115% 78% at 50% 44%, rgb(28 42 32 / .10) 24%, rgb(28 42 32 / .52) 100%);
+  }
+
+  .fronti__grille { position: relative; display: grid; justify-items: center; text-align: center; }
+
+  /* ---------- Le lieu ----------
+     Interlettrage très large : à ce corps, c'est l'espacement qui fait
+     lire « institution » plutôt que « étiquette ». */
+  .fronti__lieu {
+    display: flex; align-items: center; gap: 1.1rem;
+    font-family: theme('fontFamily.sans'); font-size: 0.66rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.42em; text-indent: 0.42em;
+    color: rgb(243 238 226 / 0.94);
+  }
+  .fronti__lieu i { display: block; width: 2.5rem; height: 1px; background: theme('colors.gold'); opacity: .8; }
+
+  /* ---------- Le nom ----------
+     Corps très grand, interlettrage NÉGATIF : au-delà de 6 rem, une serif
+     composée au normal se délite en lettres isolées. Le resserrement la
+     rend à nouveau solide, et c'est ce qui fait la différence entre un
+     grand titre et une enseigne.
+     `text-wrap: nowrap` : le nom ne se coupe jamais — c'est un nom propre,
+     pas une phrase. En dessous de sa largeur tenable, c'est le corps qui
+     cède, via le `clamp`. */
+  .fronti__nom {
+    margin-top: clamp(1.75rem, 4vh, 3rem);
+    font-family: theme('fontFamily.serif'); font-weight: 400;
+    font-size: clamp(2.6rem, 11vw, 11rem);
+    line-height: 0.92; letter-spacing: -0.045em;
+    text-wrap: nowrap; font-optical-sizing: auto;
+    /* Le script pose l'état de départ. Sans JS, le nom est simplement là. */
+  }
+
+  .fronti__dit {
+    margin-top: clamp(1.5rem, 3.5vh, 2.5rem); max-width: 44ch;
+    font-family: theme('fontFamily.serif'); font-style: italic; font-weight: 300;
+    font-size: clamp(0.98rem, 1.5vw, 1.2rem); line-height: 1.5;
+    color: rgb(243 238 226 / 0.96);
+  }
+
+  /* L'appel à l'action. Sa marge est plus courte que celle de la fiche :
+     il appartient à l'énoncé qu'il conclut, pas au pied de planche qui
+     suit. La fiche garde la sienne, et le filet reste l'accident visuel
+     qui sépare le nom de ses données. */
+  .fronti__cta { margin-top: clamp(1.75rem, 4vh, 2.75rem); }
+
+  /* ---------- La fiche ----------
+     Quatre données, un filet au-dessus : la légende d'une planche. Le
+     terme en très petit gris, la valeur en serif — c'est l'écart entre les
+     deux voix qui donne le ton, pas la taille. */
+  .fronti__fiche {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.4rem clamp(2rem, 6vw, 5rem);
+    margin-top: clamp(3rem, 8vh, 5.5rem); padding-top: 1.6rem;
+    border-top: 1px solid rgb(243 238 226 / 0.34);
+    width: min(46rem, 100%);
+  }
+  @media (min-width: 720px) { .fronti__fiche { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .fronti__fiche dt {
+    font-family: theme('fontFamily.sans'); font-size: 0.6rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.24em; color: rgb(243 238 226 / 0.82);
+  }
+  .fronti__fiche dd {
+    margin-top: 0.5rem; font-family: theme('fontFamily.serif'); font-weight: 400;
+    font-size: clamp(1.05rem, 1.8vw, 1.4rem); letter-spacing: -0.01em;
+  }
+
+  /* Le masque de chaque lettre, posé par le script. `overflow: clip` plutôt
+     que `hidden` : `hidden` sur un inline-block fabriquerait un conteneur
+     de défilement et rognerait les jambages descendants. */
+  .fronti__nom .mot { display: inline-block; overflow: clip; padding-bottom: 0.08em; }
+  .fronti__nom .car { display: inline-block; will-change: transform; }
+
+  /* ---------- L'énoncé ---------- */
+  .enonce {
+    font-family: theme('fontFamily.serif'); font-weight: 300;
+    font-size: clamp(1.4rem, 3.2vw, 2.35rem); line-height: 1.34;
+    letter-spacing: -0.016em; text-align: center; text-wrap: balance;
+    color: theme('colors.graphite');
+  }
+
+  /* ---------- LA BANDE HORIZONTALE ----------
+     La section est épinglée le temps que la piste défile — c'est le seul
+     épinglage du site, et il est justifié : sans lui, une file plus large
+     que l'écran serait inatteignable. La course verticale égale exactement
+     la course horizontale, réglée dans `anim.ts`.
+
+     ⚠️ `overflow: clip` et non `hidden` : `hidden` fabriquerait un
+     conteneur de défilement, ce qui neutraliserait l'épinglage. */
+  .bande-fil { overflow: clip; background: theme('colors.ink'); }
+  .bande-fil__piste {
+    display: flex; align-items: center; gap: clamp(1.5rem, 3vw, 3rem);
+    height: 100svh; padding-inline: var(--gutter);
+    /* `will-change` sur la piste et non sur chaque vue : une seule couche
+       de composition au lieu de sept. */
+    will-change: transform;
+  }
+
+  .bande-fil__dit {
+    flex: none; width: min(30rem, 72vw); padding-right: clamp(1rem, 4vw, 4rem);
+    font-family: theme('fontFamily.serif'); font-weight: 400;
+    font-size: clamp(1.9rem, 4vw, 3.2rem); line-height: 1.1;
+    letter-spacing: -0.02em; color: theme('colors.bone');
+  }
+  .bande-fil__sur {
+    display: block; margin-bottom: 1.4rem;
+    font-family: theme('fontFamily.sans'); font-size: 0.68rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.24em; color: theme('colors.bronze-lt');
+  }
+
+  .bande-fil__vue { flex: none; width: clamp(15rem, 26vw, 24rem); }
+  .bande-fil__cadre { aspect-ratio: 3 / 4; overflow: hidden; background: theme('colors.graphite'); }
+  .bande-fil__nom {
+    margin-top: 1.1rem; font-family: theme('fontFamily.sans');
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.18em;
+    color: rgb(243 238 226 / 0.66);
+  }
+
+  /* Sans JS — ou en mouvement réduit — la piste ne peut pas être tirée :
+     elle redevient une simple file que l'on fait défiler au doigt. */
+  @media (prefers-reduced-motion: reduce) {
+    .bande-fil__piste { overflow-x: auto; height: auto; padding-block: clamp(3rem, 8vw, 6rem); }
+  }
+
+  /* ---------- La bannière ---------- */
+  .hero-grain {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+    opacity: .06; mix-blend-mode: overlay;
+  }
+  .hero-video { opacity: 0; transition: opacity 1.2s var(--ease); }
+  .hero-video.is-playing { opacity: 1; }
+
+  .hero-scroll {
+    position: absolute; left: 50%; bottom: clamp(1.5rem, 4vh, 2.75rem);
+    transform: translateX(-50%); z-index: 2;
+    display: flex; flex-direction: column; align-items: center; gap: 0.85rem;
+    font-family: theme('fontFamily.sans'); font-size: 0.6rem; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.28em;
+    color: rgb(243 238 226 / 0.6); pointer-events: none;
+  }
+  .hero-scroll__rail { position: relative; width: 1px; height: clamp(2.5rem, 6vh, 4rem);
+                       background: rgb(243 238 226 / 0.18); overflow: hidden; }
+  .hero-scroll__rail i {
+    position: absolute; inset: 0; background: theme('colors.gold');
+    transform-origin: top; animation: hero-fall 2.4s var(--ease-soft) infinite;
+  }
+  @keyframes hero-fall {
+    0%   { transform: scaleY(0); transform-origin: top; }
+    45%  { transform: scaleY(1); transform-origin: top; }
+    55%  { transform: scaleY(1); transform-origin: bottom; }
+    100% { transform: scaleY(0); transform-origin: bottom; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-scroll__rail i { animation: none; transform: none; opacity: .5; }
+  }
+</style>

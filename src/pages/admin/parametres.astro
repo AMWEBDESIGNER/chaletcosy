@@ -1,0 +1,138 @@
+---
+export const prerender = false;
+
+import Admin from '../../layouts/Admin.astro';
+import { exigeAdmin } from '../../lib/serveur/auth';
+import { config, lis } from '../../lib/serveur/base';
+
+const garde = await exigeAdmin(Astro);
+if (garde.refus) return garde.refus;
+
+const c = config((Astro.locals as any).runtime?.env)!;
+
+let params: any = null;
+let saisons: any[] = [];
+let erreur = '';
+try {
+  const [p, s] = await Promise.all([
+    lis(c, 'parametres?select=*&id=eq.true'),
+    lis(c, 'saisons?select=*&order=priorite.asc'),
+  ]);
+  params = p[0] ?? null;
+  saisons = s;
+} catch (e) {
+  erreur = 'Lecture des paramètres impossible.';
+  console.error('[admin] paramètres', e);
+}
+
+const euros = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' });
+const jour = (iso: string) =>
+  new Date(`${iso}T00:00:00Z`).toLocaleDateString('fr-FR', {
+    day: 'numeric', month: 'long', timeZone: 'UTC',
+  });
+
+const provisoires = params?.tarifs_provisoires !== false;
+---
+<Admin
+  titre="Paramètres"
+  email={garde.session.email}
+  sous_titre="Grille tarifaire et règles de réservation"
+>
+  {erreur && <div class="note attention">{erreur}</div>}
+
+  {provisoires && (
+    <div class="note attention" style="margin:0 0 1.5rem">
+      <strong>Tarifs provisoires.</strong> Tant que ce drapeau est levé, aucun encaissement
+      réel n’est possible : une clé Stripe <code>sk_live_</code> est refusée. Le baisser
+      suppose que la grille ci-dessous soit celle que vous voulez facturer.
+    </div>
+  )}
+
+  <div class="carte">
+    <h2>Règles générales</h2>
+    {params ? (
+      <div class="defile">
+        <table>
+          <tbody>
+            <tr>
+              <td style="font-weight:500;width:14rem">Ménage</td>
+              <td>{euros.format((params.menage_cents ?? 0) / 100)}</td>
+              <td style="color:#6b6b76">Forfait, ajouté une fois par séjour.</td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">Taxe de séjour</td>
+              <td>{euros.format((params.taxe_pppn_cents ?? 0) / 100)}</td>
+              <td style="color:#6b6b76">Par personne et par nuit.</td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">Acompte</td>
+              <td>{((params.acompte_bps ?? 3000) / 100).toFixed(0)} %</td>
+              <td style="color:#6b6b76">Part encaissée à la réservation.</td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">Préavis</td>
+              <td>{params.preavis_jours ?? 0} jour{(params.preavis_jours ?? 0) > 1 ? 's' : ''}</td>
+              <td style="color:#6b6b76">Délai minimal entre la réservation et l’arrivée.</td>
+            </tr>
+            <tr>
+              <td style="font-weight:500">Tarifs provisoires</td>
+              <td style={`color:${provisoires ? '#8a6d1f' : '#1d6b3a'};font-weight:500`}>
+                {provisoires ? 'Oui' : 'Non'}
+              </td>
+              <td style="color:#6b6b76">
+                {provisoires ? 'Encaissement réel bloqué.' : 'Encaissement réel autorisé.'}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <div class="vide">Paramètres introuvables.</div>
+    )}
+  </div>
+
+  <div class="carte" style="padding-bottom:1rem">
+    <h2>Saisons</h2>
+    {saisons.length > 0 ? (
+      <div class="defile">
+        <table>
+          <thead>
+            <tr>
+              <th>Priorité</th>
+              <th>Saison</th>
+              <th>Période</th>
+              <th style="text-align:right">La nuit</th>
+              <th style="text-align:right">Minimum</th>
+            </tr>
+          </thead>
+          <tbody>
+            {saisons.map((s) => (
+              <tr>
+                <td style="font-family:ui-monospace,monospace">{s.priorite}</td>
+                <td style="font-weight:500">{s.nom}</td>
+                <td>{jour(s.debut)} → {jour(s.fin)}</td>
+                <td style="text-align:right">{euros.format(s.nuit_cents / 100)}</td>
+                <td style="text-align:right">{s.minimum} nuit{s.minimum > 1 ? 's' : ''}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <div class="vide">Aucune saison définie.</div>
+    )}
+
+    <div class="note">
+      <strong>L’ordre est la règle.</strong> La première saison qui correspond l’emporte,
+      priorité croissante. C’est ce qui permet à une quinzaine chère — le 15 août — de se
+      poser <em>par-dessus</em> juillet-août sans ambiguïté. Deux saisons qui se recouvrent
+      à priorité égale se départageraient au hasard.
+    </div>
+  </div>
+
+  <div class="note">
+    Cette page se lit ; elle ne se modifie pas. Les tarifs se changent dans Supabase, où
+    l’édition est tracée et réversible. Un formulaire ici demanderait de reconstruire cette
+    garantie, pour un réglage qu’on touche trois fois l’an.
+  </div>
+</Admin>

@@ -1,0 +1,148 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+import Photo from '../components/Photo.astro';
+import { VILLA, GALLERY, GALLERY_GROUPS } from '../lib/villa';
+import { partition } from '../lib/partition';
+
+import { breadcrumb, imageGallery } from '../lib/seo';
+
+/* La visionneuse (src/scripts/motion.ts) parcourt les `.gal` dans
+   l'ordre du document : les groupes ci-dessous se suivent donc
+   naturellement, sans index à tenir à jour. La partition compose des
+   rangées COMPLÈTES pour cette raison précise — voir `lib/partition.ts`. */
+
+const ancre = (g: string) => g.replace(/[^a-zA-ZÀ-ÿ0-9]+/g, '-').toLowerCase();
+
+/* La partition est calculée ici, au build : chaque groupe reçoit ses rangées
+   et chaque cellule sa photographie. Le faire en amont plutôt que dans le
+   gabarit évite un compteur mutant au milieu du JSX — le genre de code qui
+   se casse le jour où l'ordre d'évaluation change. */
+const CHAPITRES = GALLERY_GROUPS.map((groupe) => {
+  const photos = GALLERY.filter((p) => p.group === groupe);
+  let i = 0;
+  return {
+    groupe,
+    id: ancre(groupe),
+    total: photos.length,
+    rangees: partition(photos.length).map((rangee) =>
+      rangee.map((cellule) => ({ ...cellule, photo: photos[i++] })),
+    ),
+  };
+});
+
+/* Les largeurs sont écrites en toutes lettres, et non composées en
+   `md:col-span-${n}` : Tailwind lit le source pour décider des classes à
+   produire, une chaîne assemblée à l'exécution n'y figure pas et la classe
+   n'existerait tout simplement pas dans la feuille livrée. */
+const SPAN: Record<number, string> = {
+  12: 'md:col-span-12',
+  8: 'md:col-span-8',
+  7: 'md:col-span-7',
+  6: 'md:col-span-6',
+  5: 'md:col-span-5',
+  4: 'md:col-span-4',
+};
+
+const trail: [string, string][] = [['Galerie', '/galerie']];
+const jsonLd = [breadcrumb(Astro.site, trail), imageGallery(Astro.site)];
+---
+<Layout title={`Galerie — le Chalet Cosy de Digne-les-Bains en ${GALLERY.length} photos`}
+        description={`Le chalet en bois, sa terrasse, la pièce à vivre, la chambre, le bureau, la salle d’eau et le jardin face à la montagne : le chalet en ${GALLERY.length} images.`}
+        image="/images/chalet/chalet-terrasse.webp"
+        imageAlt="Le chalet en mélèze et sa grande terrasse, au soleil du matin"
+        jsonLd={jsonLd}>
+  <!-- En-tête -->
+  <section data-hero class="container-x pt-32">
+    <div class="max-w-3xl">
+      <Breadcrumb trail={trail} />
+      <span class="eyebrow">Galerie</span>
+      <h1 class="display mt-6 !text-[clamp(2.3rem,5.6vw,4.6rem)]">
+        <span data-anim="lignes" class="block">Le chalet,</span>
+        <span class="block">en <span class="script script--accent">images</span></span>
+      </h1>
+      <p class="lead mt-7 max-w-xl">
+        {GALLERY.length} photographies, de l’allée au jardin. Cliquez sur une image
+        pour l’agrandir, puis naviguez aux flèches.
+      </p>
+    </div>
+
+    <!-- Sommaire : des ancres, donc utiles sans JavaScript -->
+    <nav aria-label="Sections de la galerie"
+         class="mt-12 flex flex-wrap gap-x-7 gap-y-3 border-t border-hair pt-7">
+      {CHAPITRES.map((c) => (
+        <a href={`#${c.id}`}
+           class="ul-link text-[0.72rem] uppercase tracking-[0.14em] text-muted transition-colors hover:text-ink">
+          {c.groupe}
+        </a>
+      ))}
+    </nav>
+  </section>
+
+  <!-- Les groupes, en partition -->
+  {CHAPITRES.map((chapitre, gi) => (
+    <section id={chapitre.id} class={`section ${gi % 2 === 1 ? 'bg-sand' : ''} ${gi === 0 ? '' : '!pt-0'}`}>
+      <div class="container-x">
+        <div class="flex items-end justify-between gap-6 border-b border-hair pb-5">
+          <h2 class="font-serif text-[clamp(1.5rem,3vw,2rem)] tracking-tight">{chapitre.groupe}</h2>
+          {/* `muted` et non `faint` : une bande sur deux est sur le sable, où le
+               gris tertiaire tombe à 3,99:1. */}
+          <span class="num text-[0.72rem] uppercase tracking-[0.12em] text-muted">
+            {String(chapitre.total).padStart(2, '0')}
+          </span>
+        </div>
+
+        {/* Chaque RANGÉE porte le geste, jamais la cellule. Une photographie
+            qui déclencherait la sienne entrerait selon sa propre hauteur, et
+            une rangée de trois carrés se composerait en désordre. C'est la
+            règle du site — le déclencheur est l'ensemble, jamais l'élément —
+            et elle vaut ici double : trois rangées valent trois déclencheurs
+            là où l'ancienne grille en posait un par image. */}
+        <div class="mt-10 flex flex-col gap-3">
+          {chapitre.rangees.map((rangee, ri) => (
+            <div class="grid grid-cols-12 items-start gap-3" data-anim="partition">
+              {rangee.map((cel, ci) => (
+                <button type="button"
+                        class={`gal part-cell hover-zoom relative col-span-12 ${SPAN[cel.span]}`}
+                        style={`--ar:${cel.ratio}`}
+                        data-src={cel.photo.src} data-alt={cel.photo.alt}
+                        data-derive={cel.span === 12 ? '' : undefined}
+                        aria-label={`Agrandir : ${cel.photo.alt}`}>
+                  <Photo src={cel.photo.src} sizes={cel.taille} alt={cel.photo.alt}
+                         loading={gi === 0 && ri === 0 ? 'eager' : 'lazy'} decoding="async"
+                         class="h-full w-full object-cover" />
+                </button>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  ))}
+
+  <!-- Vers la réservation -->
+  <section class="section !pt-0">
+    <div class="container-x flex flex-wrap items-center justify-between gap-8 border-t border-hair pt-14">
+      <p class="lead max-w-md">Un chalet, un jardin, la montagne. Dites-nous vos dates.</p>
+      <div class="flex flex-wrap gap-4">
+        <a href="/le-chalet" class="btn btn-ghost">Le chalet en détail</a>
+        <a href={VILLA.airbnb} target="_blank" rel="noopener" class="btn btn-primary">Réserver</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Visionneuse -->
+  <div id="lightbox" hidden>
+    <button id="lb-close" class="lb-btn right-4 top-4" aria-label="Fermer la galerie">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19" stroke="currentColor" stroke-width="1.4"/></svg>
+    </button>
+    <button class="lb-btn left-4 top-1/2 -translate-y-1/2" data-lb-prev aria-label="Photo précédente">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="1.4"/></svg>
+    </button>
+    <button class="lb-btn right-4 top-1/2 -translate-y-1/2" data-lb-next aria-label="Photo suivante">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="1.4"/></svg>
+    </button>
+    <img id="lb-img" src="" alt="" />
+    <span data-lb-count class="num absolute bottom-6 left-1/2 -translate-x-1/2 text-[0.72rem] uppercase tracking-[0.16em] text-bone/60"></span>
+  </div>
+</Layout>

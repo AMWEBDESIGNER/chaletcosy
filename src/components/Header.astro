@@ -1,0 +1,235 @@
+---
+import Brand from './Brand.astro';
+import { VILLA } from '../lib/villa';
+import { AGENCY } from '../lib/legal';
+
+/* Le menu ne se replie plus sur le mobile : il couvre l'écran à toutes les
+   largeurs. Un chalet unique n'a pas quatre rubriques à aligner dans une
+   barre — elle a un nom, et une porte que l'on pousse. Le desktop y gagne
+   l'en-tête le plus dépouillé possible : le monogramme, et rien d'autre
+   jusqu'au bouton. */
+const links = [
+  { href: '/le-chalet', label: 'Le chalet' },
+  { href: '/galerie', label: 'La galerie' },
+  { href: '/digne-les-bains', label: 'Digne-les-Bains' },
+  { href: '/contact', label: 'Contact' },
+];
+
+/* Colonne de droite : ce qui relève du séjour, non de la visite. */
+const aside = [
+  { href: VILLA.airbnb, label: 'Réserver le séjour', ext: true },
+  { href: '/contact', label: 'Demander une date', ext: false },
+];
+---
+<header id="hdr" class="fixed inset-x-0 top-0 z-50 border-b border-transparent transition-[background-color,border-color,backdrop-filter] duration-500 ease-smooth">
+  <div class="container-x flex h-20 items-center justify-between gap-6">
+    <Brand variant="compact" tone="auto" />
+
+    <div class="flex items-center gap-5 sm:gap-7">
+      <a href={VILLA.airbnb} target="_blank" rel="noopener"
+         class="btn btn-ghost hidden whitespace-nowrap !px-5 !py-2.5 !text-[0.68rem] sm:inline-flex">
+        Réserver
+      </a>
+
+      {/* Deux filets qui se croisent. Le libellé change avec l'état : un
+          bouton qui dit « Ouvrir » alors que le panneau est ouvert ment aux
+          lecteurs d'écran, et `aria-expanded` seul ne le rattrape pas. */}
+      <button id="burger" type="button" aria-expanded="false" aria-controls="overlay"
+              class="mn-burger relative h-6 w-8" >
+        <span class="sr-only" data-burger-label>Ouvrir le menu</span>
+        <span aria-hidden="true"></span>
+        <span aria-hidden="true"></span>
+      </button>
+    </div>
+  </div>
+
+  {/* Le fil de progression. Sous l'en-tête, doré, large d'un cheveu : il dit
+      où l'on en est sans jamais demander l'attention. `aria-hidden` — la
+      barre de défilement native porte déjà l'information. */}
+  <span id="progression" aria-hidden="true"></span>
+</header>
+
+<!-- ============================================================
+     Le rideau. Deux panneaux d'encre entrent par les bords et se
+     rejoignent au centre ; les rubriques tombent ensuite, une par une.
+     À la fermeture l'ordre s'inverse — les rubriques d'abord, le fond
+     ensuite : c'est ce décalage qui donne au geste son épaisseur.
+     ============================================================ -->
+<div id="overlay" aria-hidden="true" tabindex="-1" class="mn fixed inset-0 z-40 outline-none">
+  <div class="mn-inner container-x">
+    <nav class="mn-main" aria-label="Navigation principale">
+      <ul>
+        {links.map((l, i) => (
+          <li style={`--d:${560 + i * 55}ms`}>
+            {/* Deux fois le même mot : le romain sort par la droite, l'italique
+                entre par la gauche. Le second est masqué aux lecteurs d'écran —
+                c'est un dessin, pas une information. */}
+            <a href={l.href} data-nav class="mn-link">
+              <span>{l.label}</span>
+              <span aria-hidden="true">{l.label}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+
+    <div class="mn-col">
+      <nav class="mn-side" aria-label="Séjourner">
+        <ul>
+          {aside.map((l, i) => (
+            <li style={`--d:${780 + i * 55}ms`}>
+              <a href={l.href} class="mn-link"
+                 {...(l.ext ? { target: '_blank', rel: 'noopener' } : {})}>
+                <span>{l.label}</span>
+                <span aria-hidden="true">{l.label}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+
+      <div class="mn-foot">
+        <ul class="mn-socials" style="--d:900ms">
+          <li><a href={`mailto:${AGENCY.email}`}>{AGENCY.email}</a></li>
+        </ul>
+        <p class="mn-place" style="--d:940ms">
+          Digne-les-Bains <span aria-hidden="true">·</span> Alpes-de-Haute-Provence
+          <span class="mn-star" aria-hidden="true">✦</span>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  #progression {
+    position: absolute; inset-inline: 0; bottom: -1px; height: 2px;
+    background: theme('colors.gold'); transform-origin: left center;
+    /* Sans JS, aucune barre : un fil figé à zéro se lirait comme un défaut. */
+    transform: scaleX(0);
+  }
+
+  #hdr.is-solid { background-color: rgb(243 238 226 / 0.82); backdrop-filter: blur(18px); border-color: theme('colors.hair'); }
+
+  /* La page où l'on se trouve porte l'étoile du logo, posée dans la marge.
+     Elle ne colore pas le libellé : la bascule romain/italique occupe déjà
+     cette couleur au survol, et deux signes dorés sur le même mot se
+     contrediraient. `aria-current` reste la source pour les lecteurs
+     d'écran — l'étoile n'est que sa traduction visible. */
+  .mn-link.is-active { position: relative; }
+  .mn-link.is-active::before {
+    content: '✦'; position: absolute; right: calc(100% + 0.45em);
+    font-family: theme('fontFamily.sans'); font-size: 0.3em;
+    color: theme('colors.gold'); line-height: inherit;
+  }
+  @media (min-width: 900px) {
+    /* Colonne de droite alignée à droite : l'étoile passe de l'autre côté,
+       sinon elle sortirait du filet. */
+    .mn-col .mn-link.is-active::before { right: auto; left: calc(100% + 0.45em); }
+  }
+
+  /* Au sommet d'un hero photographique, et pendant toute l'ouverture du
+     rideau : tout passe en clair. */
+  #hdr.is-over-dark { color: theme('colors.bone'); }
+  #hdr.is-over-dark .btn-ghost { border-color: rgb(243 238 226 / 0.35); color: theme('colors.bone'); }
+  #hdr.is-over-dark .btn-ghost:hover { background: theme('colors.bone'); color: theme('colors.ink'); border-color: theme('colors.bone'); }
+  #hdr.is-over-dark .mn-burger span[aria-hidden] { background: theme('colors.bone'); }
+
+  /* ---------- Le bouton ---------- */
+  .mn-burger span[aria-hidden] {
+    position: absolute; left: 0; display: block; height: 1px; width: 2rem;
+    background: theme('colors.ink');
+    transition: transform .6s var(--ease-expo), top .4s var(--ease), bottom .4s var(--ease);
+  }
+  .mn-burger span[aria-hidden]:nth-of-type(1) { top: 0.5rem; }
+  .mn-burger span[aria-hidden]:nth-of-type(2) { bottom: 0.5rem; }
+  .mn-burger.is-open span[aria-hidden]:nth-of-type(1) { top: calc(50% - 1px); transform: rotate(45deg); }
+  .mn-burger.is-open span[aria-hidden]:nth-of-type(2) { bottom: calc(50% - 0px); transform: rotate(-45deg); }
+
+  /* ---------- Le rideau ---------- */
+  /* Fermé : hors champ *et* hors du parcours clavier. La visibilité attend
+     que les panneaux soient sortis, sinon le panneau disparaîtrait d'un coup
+     au milieu de son propre mouvement. */
+  .mn { visibility: hidden; transition: visibility 0s linear .9s; }
+  .mn.is-open { visibility: visible; transition-delay: 0s; }
+
+  /* Les deux moitiés d'encre. `z-index: -1` les place derrière le contenu du
+     panneau sans ouvrir de contexte d'empilement supplémentaire. */
+  .mn::before, .mn::after {
+    content: ''; position: absolute; top: 0; bottom: 0; width: 50.5%;
+    background: theme('colors.ink'); z-index: -1;
+    transition: transform .9s var(--ease-expo); transition-delay: .28s;
+  }
+  .mn::before { left: 0; transform: translate3d(-100%, 0, 0); }
+  .mn::after { right: 0; transform: translate3d(100%, 0, 0); }
+  .mn.is-open::before, .mn.is-open::after { transform: none; transition-delay: 0s; }
+
+  .mn-inner {
+    display: grid; gap: clamp(2rem, 5vh, 3.5rem); align-content: center;
+    height: 100%; padding-top: var(--header); padding-bottom: clamp(1.5rem, 5vh, 3rem);
+    color: theme('colors.bone');
+  }
+  @media (min-width: 900px) {
+    .mn-inner { grid-template-columns: 1fr auto; align-items: center; gap: 4rem; }
+  }
+
+  /* Chaque rubrique tombe du haut, retenue par sa propre attente. */
+  .mn li, .mn-socials, .mn-place {
+    opacity: 0; transform: translate3d(0, -0.6em, 0);
+    transition: opacity .5s ease, transform .7s var(--ease-expo);
+  }
+  .mn.is-open li, .mn.is-open .mn-socials, .mn.is-open .mn-place {
+    opacity: 1; transform: none; transition-delay: var(--d, 0ms);
+  }
+
+  /* ---------- La bascule romain / italique ----------
+     Les deux mots occupent la même cellule de grille : ils se superposent au
+     pixel près sans position absolue, donc sans hauteur à recalculer. Le
+     romain sort par la droite pendant que l'italique entre par la gauche, et
+     le décalage des attentes fait qu'ils ne se croisent jamais à vide. */
+  .mn-link { display: inline-grid; grid-template-areas: 'main'; line-height: 1.16; }
+  .mn-link > span {
+    grid-area: main; display: block;
+    clip-path: inset(0 0 0 0);
+    transition: clip-path .52s var(--ease-expo); transition-delay: .16s;
+  }
+  .mn-link > span + span {
+    font-style: italic; color: theme('colors.gold');
+    clip-path: inset(0 100% 0 0); transition-delay: 0s;
+  }
+  @media (hover: hover) {
+    .mn-link:hover > span, .mn-link:focus-visible > span { clip-path: inset(0 0 0 100%); transition-delay: 0s; }
+    .mn-link:hover > span + span, .mn-link:focus-visible > span + span { clip-path: inset(0 0 0 0); transition-delay: .16s; }
+  }
+
+  .mn-main a { font-family: theme('fontFamily.serif'); font-weight: 400;
+               font-size: clamp(2.4rem, 7.5vw, 5.4rem); letter-spacing: -0.028em; }
+  .mn-main li + li { margin-top: clamp(0.1rem, 0.8vh, 0.5rem); }
+
+  .mn-side a { font-family: theme('fontFamily.serif'); font-weight: 400;
+               font-size: clamp(1.15rem, 2.6vw, 1.7rem); letter-spacing: -0.014em; }
+  .mn-side li + li { margin-top: 0.35rem; }
+
+  .mn-col { display: grid; gap: clamp(1.75rem, 5vh, 3.25rem); align-content: center; }
+  @media (min-width: 900px) {
+    .mn-col { border-left: 1px solid theme('colors.hair-dk'); padding-left: 4rem; text-align: right; }
+    .mn-col .mn-link { justify-items: end; }
+  }
+
+  .mn-foot { display: grid; gap: 1rem; font-family: theme('fontFamily.sans');
+             font-size: 0.74rem; letter-spacing: 0.14em; }
+  .mn-socials { display: flex; flex-wrap: wrap; gap: 0.4rem 1.5rem; color: rgb(243 238 226 / 0.62); }
+  @media (min-width: 900px) { .mn-socials { justify-content: flex-end; } }
+  .mn-socials a { transition: color .4s var(--ease); }
+  .mn-socials a:hover { color: theme('colors.bone'); }
+  .mn-place { text-transform: uppercase; letter-spacing: 0.2em; color: rgb(243 238 226 / 0.38); }
+  .mn-star { color: theme('colors.gold'); margin-left: 0.5em; }
+
+  /* Mouvement réduit : le rideau se contente d'apparaître. Sans cela les
+     panneaux resteraient hors champ, transition neutralisée — le menu
+     s'ouvrirait sur du vide. */
+  @media (prefers-reduced-motion: reduce) {
+    .mn::before, .mn::after { transform: none !important; }
+    .mn { transition: none; }
+  }
+</style>

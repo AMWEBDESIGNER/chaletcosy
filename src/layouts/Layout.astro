@@ -1,0 +1,194 @@
+---
+import '../styles/global.css';
+import { ClientRouter } from 'astro:transitions';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import Consent from '../components/Consent.astro';
+import { VILLA } from '../lib/villa';
+import { AGENCY } from '../lib/legal';
+
+const stripeKey = (import.meta.env as any).PUBLIC_STRIPE_PUBLISHABLE_KEY || '';
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  /** Texte de l'image sociale — décrit la vignette partagée sur les réseaux. */
+  imageAlt?: string;
+  /** Retire la page de l'index : erreurs, pages sans valeur de recherche. */
+  noindex?: boolean;
+  /** Données structurées propres à la page — un bloc, ou plusieurs.
+      Une page en porte souvent deux : son fil d'Ariane et son type. */
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+}
+const {
+  /* Titre et description sont calibrés sur ce qu'affichent réellement les
+     moteurs : ~60 signes pour le titre, ~155 pour la description. Au-delà,
+     la fin est tronquée — et c'est souvent l'argument qui y tombe. */
+  title = 'Chalet Cosy — chalet tout confort à Digne-les-Bains',
+  description = 'Chalet en bois de 30 m² au pied de la montagne, à deux pas du centre et des thermes de Digne-les-Bains. Jardin, terrasse, vélos, clim réversible. Quatre voyageurs.',
+  image = '/images/og.jpg',
+  imageAlt = "Le Chalet Cosy, sa terrasse en bois et son jardin, à Digne-les-Bains",
+  noindex = false,
+  jsonLd,
+} = Astro.props;
+
+const blocks = jsonLd ? (Array.isArray(jsonLd) ? jsonLd : [jsonLd]) : [];
+
+/* L'adresse officielle de la page, celle que doivent retenir les moteurs.
+   Au prérendu, Astro nomme les fichiers `contact.html` : on retire cette
+   extension, technique, que nos liens n'écrivent jamais. Puis la barre
+   finale, pour que `/contact` et `/contact/` ne fassent qu'une adresse. */
+const canonicalPath =
+  Astro.url.pathname.replace(/\.html$/, '').replace(/\/+$/, '') || '/';
+const canonical = new URL(canonicalPath, Astro.site);
+const ogImage = new URL(image, Astro.site);
+
+/* Un chalet en location saisonnière, pas une agence : le type qui
+   décrit le mieux la page est `VacationRental`. Les moteurs y lisent
+   la capacité, le nombre de chambres et la note des voyageurs. */
+const org = {
+  '@context': 'https://schema.org',
+  '@type': 'VacationRental',
+  name: VILLA.name,
+  description,
+  url: Astro.site?.href,
+  image: ogImage.href,
+  email: AGENCY.email,
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: VILLA.city,
+    postalCode: VILLA.postalCode,
+    addressRegion: VILLA.region,
+    addressCountry: 'FR',
+  },
+  geo: { '@type': 'GeoCoordinates', latitude: VILLA.lat, longitude: VILLA.lng },
+  numberOfRooms: VILLA.bedrooms,
+  numberOfBathroomsTotal: VILLA.bathrooms,
+  occupancy: { '@type': 'QuantitativeValue', maxValue: VILLA.guests, unitText: 'voyageurs' },
+  floorSize: { '@type': 'QuantitativeValue', value: VILLA.surface, unitCode: 'MTK' },
+  petsAllowed: false,
+  smokingAllowed: false,
+  checkinTime: '15:00',
+  checkoutTime: '11:00',
+  aggregateRating: {
+    '@type': 'AggregateRating',
+    ratingValue: '5',
+    bestRating: '5',
+    reviewCount: VILLA.reviews,
+  },
+  amenityFeature: [
+    'Climatisation réversible', 'Wifi', 'Espace de travail', 'Cuisine équipée',
+    'Lave-linge', 'Terrasse', 'Jardin', 'Vélos', 'Stationnement privé',
+  ].map((n) => ({ '@type': 'LocationFeatureSpecification', name: n, value: true })),
+};
+---
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical.href} />
+    {noindex
+      ? <meta name="robots" content="noindex, follow" />
+      : <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />}
+
+    <meta property="og:site_name" content={VILLA.name} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:url" content={canonical.href} />
+    <meta property="og:image" content={ogImage.href} />
+    <meta property="og:image:alt" content={imageAlt} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage.href} />
+    <meta name="twitter:image:alt" content={imageAlt} />
+
+    <meta name="theme-color" content="#1C2A20" />
+    {stripeKey && <meta name="stripe-publishable-key" content={stripeKey} />}
+    {/* Ce script reste en ligne et dans le `<head>` : il doit décider avant
+        la première peinture, sinon le rideau apparaîtrait après coup, sur
+        une page déjà lue. Il n'ajoute pas de troisième script en ligne au
+        site — c'est celui qui posait déjà la classe `js`. */}
+    <script is:inline>
+      (function () {
+        var d = document.documentElement;
+        d.classList.add('js');
+        /* Le rideau d'ouverture ne se lève qu'une fois par session, et
+           jamais en mouvement réduit. Il ne retient rien : la page est
+           peinte dessous, les panneaux se retirent dès la première image.
+           `try` — en navigation privée stricte, lire le stockage jette. */
+        try {
+          if (!sessionStorage.getItem('cosy-vu') &&
+              !matchMedia('(prefers-reduced-motion: reduce)').matches) {
+            d.classList.add('intro');
+            sessionStorage.setItem('cosy-vu', '1');
+          }
+        } catch (e) {}
+      })();
+    </script>
+
+    <link rel="preload" href="/fonts/switzer-400.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/switzer-500.woff2" as="font" type="font/woff2" crossorigin />
+    {/* Le romain seul est préchargé : c'est lui qui porte le titre visible au
+        chargement. L'italique et l'anglaise arrivent plus bas dans la page. */}
+    <link rel="preload" href="/fonts/newsreader.woff2" as="font" type="font/woff2" crossorigin />
+    {/* Le vectoriel d'abord — net à toute densité ; le PNG reste le repli
+        des navigateurs anciens et l'icône d'écran d'accueil iOS. */}
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/images/favicon-180.png" type="image/png" sizes="180x180" />
+    <link rel="apple-touch-icon" href="/images/favicon-180.png" />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify(org)} />
+    {blocks.map((b) => <script type="application/ld+json" is:inline set:html={JSON.stringify(b)} />)}
+
+    <ClientRouter />
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Aller au contenu</a>
+
+    {/* Le rideau d'ouverture. Même geste que le menu — deux panneaux d'encre
+        qui se retirent vers les bords — pour que le site n'ait qu'un seul
+        vocabulaire d'entrée et de sortie. Purement décoratif : la page est
+        déjà peinte dessous, rien n'attend sa disparition. */}
+    <div class="veil" aria-hidden="true"></div>
+
+    {/* ⚠️ L'en-tête, le menu et le bandeau restent HORS de l'enveloppe de
+        défilement. ScrollSmoother déplace `#smooth-content` par transformation :
+        tout ce qui doit rester fixe à l'écran — un en-tête, un panneau plein
+        écran — devient solidaire de ce déplacement s'il est placé dedans, et
+        se met à défiler avec la page. C'est le piège classique du défilement
+        lissé, et il ne se voit qu'une fois la page longue. */}
+    <Header transition:persist />
+
+    <div id="smooth-wrapper">
+      <div id="smooth-content">
+        <main id="main"><slot /></main>
+        <Footer />
+      </div>
+    </div>
+
+    <Consent transition:persist />
+
+    <script>
+      import '../scripts/motion';
+    </script>
+
+    <style is:global>
+      .skip-link {
+        position: fixed; left: 1rem; top: -100%; z-index: 300;
+        background: #1C2A20; color: #F3EEE2; padding: .8rem 1.2rem;
+        font-size: .74rem; text-transform: uppercase; letter-spacing: .16em;
+        transition: top .3s ease;
+      }
+      .skip-link:focus-visible { top: 1rem; }
+    </style>
+  </body>
+</html>

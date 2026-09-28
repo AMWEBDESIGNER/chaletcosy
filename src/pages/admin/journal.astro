@@ -1,0 +1,100 @@
+---
+export const prerender = false;
+
+import Admin from '../../layouts/Admin.astro';
+import { exigeAdmin } from '../../lib/serveur/auth';
+import { config, lis } from '../../lib/serveur/base';
+
+const garde = await exigeAdmin(Astro);
+if (garde.refus) return garde.refus;
+
+const c = config((Astro.locals as any).runtime?.env)!;
+
+let journal: any[] = [];
+let erreur = '';
+try {
+  /* Trié sur `cree_le`, pas sur `id`. Les deux coïncident aujourd'hui,
+     mais `id` est une séquence : il ne promet qu'un ordre d'insertion,
+     et cette page prétend montrer une chronologie. */
+  journal = await lis(c, 'journal?select=*&order=cree_le.desc&limit=100');
+} catch (e) {
+  erreur = 'Lecture du journal impossible.';
+  console.error('[admin] journal', e);
+}
+
+/* Les DEUX actions que le schéma écrit réellement — voir les `insert into
+   journal` de `api_poser_option` et `api_confirmer`. On ne liste que
+   celles-là : des libellés pour des actions qui n'existent pas laisseraient
+   croire qu'on les surveille. Une action inconnue tombe sur le repli
+   ci-dessous, et se lira quand même. */
+const ACTIONS: Record<string, { libelle: string; teinte: string }> = {
+  option_posee:     { libelle: 'Option posée',       teinte: '#8a6d1f' },
+  acompte_encaisse: { libelle: 'Acompte encaissé',   teinte: '#1d6b3a' },
+};
+
+const horodate = (iso: string) =>
+  new Date(iso).toLocaleString('fr-FR', {
+    day: 'numeric', month: 'short', year: '2-digit',
+    hour: '2-digit', minute: '2-digit',
+  });
+---
+<Admin
+  titre="Journal"
+  email={garde.session.email}
+  sous_titre="Les cent dernières actions, la plus récente en premier"
+>
+  {erreur && <div class="note attention">{erreur}</div>}
+
+  <div class="carte" style="padding:0">
+    <div class="defile">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:11rem">Quand</th>
+            <th style="width:12rem">Action</th>
+            <th>Détail</th>
+            <th style="width:9rem">Acteur</th>
+          </tr>
+        </thead>
+        <tbody>
+          {journal.length === 0 ? (
+            <tr><td colspan="4" class="vide">Rien d’enregistré pour l’instant.</td></tr>
+          ) : (
+            journal.map((e) => {
+              const a = ACTIONS[e.action] ?? { libelle: e.action, teinte: '#26262c' };
+              return (
+                <tr>
+                  <td style="color:#6b6b76;font-size:0.85rem;white-space:nowrap">
+                    {horodate(e.cree_le)}
+                  </td>
+                  <td style={`color:${a.teinte};font-weight:500`}>{a.libelle}</td>
+                  <td style="font-family:ui-monospace,monospace;font-size:0.8rem;color:#4a4a55">
+                    {e.detail
+                      ? JSON.stringify(e.detail)
+                      : <span style="color:#a0a0aa;font-family:inherit">—</span>}
+                  </td>
+                  <td style="color:#6b6b76;font-size:0.85rem">
+                    {e.acteur ?? <span style="color:#a0a0aa">système</span>}
+                  </td>
+                </tr>
+              );
+            })
+          )}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="note">
+    Le journal existe pour trancher : une annulation contestée se règle sur une trace
+    horodatée, pas sur un souvenir. Il n’est pas modifiable depuis ici — ce qui serait
+    effaçable ne prouverait rien.
+  </div>
+
+  <div class="note attention">
+    <strong>Deux événements n’y figurent pas encore.</strong> La péremption d’une option
+    (<code>perimer_les_options</code>) et l’import d’un blocage Airbnb
+    (<code>api_importer_ical</code>) changent des occupations sans rien écrire ici. Une
+    semaine libérée toute seule est donc invisible dans cette page.
+  </div>
+</Admin>
