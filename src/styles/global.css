@@ -491,6 +491,14 @@
    plus du défilement lissé. */
 #smooth-wrapper { overflow: hidden; }
 
+/* Le lissage n'est monté que sur les appareils à pointeur précis. Sur mobile,
+   l'enveloppe doit donc laisser Safari piloter la page sans créer de zone de
+   défilement ou de largeur fantôme. */
+@media (hover: none), (pointer: coarse) {
+  #smooth-wrapper { overflow: visible; width: 100%; }
+  #smooth-content { width: 100%; }
+}
+
 /* ---------- La capsule ----------
    Le cadre s'ouvre depuis une fente arrondie. On anime `--capsule`, une
    valeur unique en pourcentage, et le CSS recompose la découpe : deux

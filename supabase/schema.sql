@@ -210,6 +210,64 @@ create table if not exists journal (
 create index if not exists journal_occupation_idx on journal (occupation, cree_le desc);
 
 -- ============================================================
+-- LE CONTENU ÉDITABLE DU SITE
+--
+-- Une ligne par bloc de texte ou photographie. Les valeurs par défaut
+-- restent dans le code : supprimer une ligne restaure donc proprement le
+-- contenu livré avec le site, sans migration inverse.
+-- ============================================================
+create table if not exists contenus_site (
+  cle       text primary key,
+  valeur    text not null,
+  type      text not null check (type in ('texte', 'image')),
+  maj_par   text,
+  maj_le    timestamptz not null default now()
+);
+create index if not exists contenus_site_maj_le_idx on contenus_site (maj_le desc);
+
+-- Le bucket est public en lecture : les photographies doivent pouvoir être
+-- servies aux visiteurs. Seul le serveur, muni de la clé service_role,
+-- écrit dedans ; aucune politique d'upload anonyme n'est créée.
+do $$
+begin
+  if exists (select 1 from information_schema.tables
+              where table_schema = 'storage' and table_name = 'buckets') then
+    insert into storage.buckets (id, name, public)
+    values ('medias-site', 'medias-site', true)
+    on conflict (id) do update set public = excluded.public;
+  end if;
+end $$;
+
+-- Changement de statut atomique avec sa trace. La clé service_role est le
+-- seul appelant ; le contrôle administrateur a déjà eu lieu côté serveur.
+create or replace function admin_modifier_statut(
+  p_occupation uuid,
+  p_statut text,
+  p_acteur text
+) returns boolean as $$
+declare ancien text;
+begin
+  if p_statut not in ('option', 'confirme', 'annule') then
+    raise exception 'STATUT_INVALIDE';
+  end if;
+
+  select statut into ancien from occupations where id = p_occupation for update;
+  if ancien is null then raise exception 'OCCUPATION_INTROUVABLE'; end if;
+  if ancien = p_statut then return false; end if;
+
+  update occupations set statut = p_statut where id = p_occupation;
+  insert into journal (occupation, action, detail, acteur)
+  values (
+    p_occupation,
+    'statut_modifie',
+    jsonb_build_object('avant', ancien, 'apres', p_statut),
+    p_acteur
+  );
+  return true;
+end;
+$$ language plpgsql;
+
+-- ============================================================
 -- QUI A LE DROIT D'ENTRER DANS LE BACK-OFFICE
 --
 -- L'identité vient de Supabase Auth (`auth.users`) : c'est lui qui tient
@@ -305,12 +363,14 @@ alter table saisons     enable row level security;
 alter table parametres  enable row level security;
 alter table journal     enable row level security;
 alter table profils     enable row level security;
+alter table contenus_site enable row level security;
 
 alter table occupations force row level security;
 alter table saisons     force row level security;
 alter table parametres  force row level security;
 alter table journal     force row level security;
 alter table profils     force row level security;
+alter table contenus_site force row level security;
 
 -- ============================================================
 -- LES FONCTIONS D'ACCÈS

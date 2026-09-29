@@ -6,7 +6,7 @@
     "dev": "astro dev",
     "images": "node tools/build-images.mjs",
     "prebuild": "node tools/build-lastmod.mjs",
-    "build": "astro build",
+    "build": "astro build && node tools/prepare-sites-worker.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "test": "node --experimental-strip-types tools/test-reservation.ts && node --experimental-strip-types tools/test-ical.ts && node --experimental-strip-types tools/test-stripe.ts"

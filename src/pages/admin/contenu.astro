@@ -1,0 +1,127 @@
+---
+export const prerender = false;
+
+import Admin from '../../layouts/Admin.astro';
+import { exigeAdmin } from '../../lib/serveur/auth';
+import { config, lis, enregistreContenu, enregistreImage } from '../../lib/serveur/base';
+import { CHAMPS_CONTENU, CHAMPS_PAR_CLE } from '../../lib/contenu-site';
+
+const garde = await exigeAdmin(Astro);
+if (garde.refus) return garde.refus;
+
+const c = config((Astro.locals as any).runtime?.env)!;
+let message = '';
+let erreur = '';
+
+const origineValide = () => {
+  const origine = Astro.request.headers.get('origin');
+  return !origine || origine === Astro.url.origin;
+};
+
+if (Astro.request.method === 'POST') {
+  if (!origineValide()) {
+    return new Response('Origine refusée.', { status: 403 });
+  }
+
+  const formulaire = await Astro.request.formData();
+  const cle = String(formulaire.get('cle') ?? '');
+  const champ = CHAMPS_PAR_CLE.get(cle);
+
+  if (!champ) {
+    erreur = 'Ce contenu n’est pas modifiable.';
+  } else {
+    try {
+      if (champ.type === 'image') {
+        const fichier = formulaire.get('image');
+        if (!(fichier instanceof File) || fichier.size === 0) {
+          throw new Error('Choisissez une image.');
+        }
+        if (!['image/jpeg', 'image/png', 'image/webp', 'image/avif'].includes(fichier.type)) {
+          throw new Error('Format accepté : JPEG, PNG, WebP ou AVIF.');
+        }
+        if (fichier.size > 8 * 1024 * 1024) {
+          throw new Error('L’image ne doit pas dépasser 8 Mo.');
+        }
+        const url = await enregistreImage(c, fichier, cle);
+        await enregistreContenu(c, cle, url, 'image', garde.session.email);
+      } else {
+        const valeur = String(formulaire.get('valeur') ?? '').trim();
+        if (!valeur) throw new Error('Le texte ne peut pas être vide.');
+        if (valeur.length > 3000) throw new Error('Le texte est trop long.');
+        await enregistreContenu(c, cle, valeur, 'texte', garde.session.email);
+      }
+      return Astro.redirect(`/admin/contenu?enregistre=${encodeURIComponent(cle)}`, 303);
+    } catch (e) {
+      erreur = e instanceof Error ? e.message : 'Enregistrement impossible.';
+      console.error('[admin] contenu', e);
+    }
+  }
+}
+
+if (Astro.url.searchParams.has('enregistre')) message = 'Modification enregistrée.';
+
+let valeurs: Record<string, string> = {};
+try {
+  const lignes = await lis(c, 'contenus_site?select=cle,valeur');
+  valeurs = Object.fromEntries(lignes.map((ligne) => [ligne.cle, ligne.valeur]));
+} catch (e) {
+  erreur ||= 'Lecture du contenu impossible. Vérifiez que le schéma Supabase a été mis à jour.';
+  console.error('[admin] contenu lecture', e);
+}
+
+const pages = [...new Set(CHAMPS_CONTENU.map((champ) => champ.page))];
+---
+<Admin
+  titre="Contenu du site"
+  email={garde.session.email}
+  sous_titre="Modifiez les principaux textes et photographies sans toucher au code"
+>
+  {message && <div class="note succes" role="status">{message}</div>}
+  {erreur && <div class="note attention" role="alert">{erreur}</div>}
+
+  {pages.map((page) => (
+    <section class="carte contenu-page">
+      <h2>{page}</h2>
+      <div class="contenu-grille">
+        {CHAMPS_CONTENU.filter((champ) => champ.page === page).map((champ) => {
+          const valeur = valeurs[champ.cle] ?? champ.valeur;
+          return (
+            <form method="POST" enctype="multipart/form-data" class="contenu-champ">
+              <input type="hidden" name="cle" value={champ.cle} />
+              <label for={`champ-${champ.cle}`}>{champ.libelle}</label>
+              {champ.type === 'image' ? (
+                <>
+                  <img src={valeur} alt="Aperçu actuel" class="apercu-contenu" />
+                  <input id={`champ-${champ.cle}`} type="file" name="image"
+                         accept="image/jpeg,image/png,image/webp,image/avif" required />
+                  <p class="aide">JPEG, PNG, WebP ou AVIF — 8 Mo maximum.</p>
+                </>
+              ) : (
+                <textarea id={`champ-${champ.cle}`} name="valeur" rows="4" required>{valeur}</textarea>
+              )}
+              <button type="submit" class="action-primaire">Enregistrer</button>
+            </form>
+          );
+        })}
+      </div>
+    </section>
+  ))}
+</Admin>
+
+<style>
+  .contenu-page + .contenu-page { margin-top: 1.5rem; }
+  .contenu-grille { display: grid; gap: 1.25rem; }
+  .contenu-champ { border-top: 1px solid #e3e3e8; padding-top: 1.15rem; }
+  .contenu-champ:first-child { border-top: 0; padding-top: 0; }
+  label { display: block; margin-bottom: .45rem; color: #020946; font-weight: 600; }
+  textarea, input[type='file'] {
+    width: 100%; border: 1px solid #d8d8e0; border-radius: 6px;
+    padding: .7rem .8rem; font: inherit; background: #fcfcfd;
+  }
+  textarea { resize: vertical; min-height: 7rem; line-height: 1.5; }
+  textarea:focus, input:focus { outline: 2px solid rgba(2, 9, 70, .18); border-color: #020946; }
+  .apercu-contenu { display: block; width: min(100%, 420px); max-height: 240px; object-fit: cover; margin-bottom: .8rem; border-radius: 6px; }
+  .aide { color: #6b6b76; font-size: .8rem; margin-top: .4rem; }
+  .action-primaire { margin-top: .75rem; border: 0; border-radius: 6px; padding: .6rem 1rem; background: #020946; color: white; font: inherit; font-weight: 600; cursor: pointer; }
+  .succes { border-left-color: #1d6b3a; background: #ecf7ef; color: #15552d; margin-bottom: 1.5rem; }
+</style>

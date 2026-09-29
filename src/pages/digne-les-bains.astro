@@ -125,11 +125,11 @@ const POIDS: Record<string, {
     <div class="max-w-3xl">
       <Breadcrumb trail={trail} />
       <span class="eyebrow">Aux alentours</span>
-      <h1 class="display mt-6 !text-[clamp(2.3rem,5.6vw,4.6rem)]">
+      <h1 data-contenu="digne.titre" class="display mt-6 !text-[clamp(2.3rem,5.6vw,4.6rem)]">
         <span data-anim="lignes" class="block">Digne, entre Alpes</span>
         <span class="block">et <span class="script script--accent">Provence</span></span>
       </h1>
-      <p class="lead mt-7 max-w-xl">
+      <p data-contenu="digne.introduction" class="lead mt-7 max-w-xl">
         Une ville thermale et ensoleillée, capitale de la lavande, au cœur d’un Géoparc
         mondial. Patrimoine, culture et nature, des événements toute l’année — et la Côte
         d’Azur à deux heures.
@@ -198,7 +198,7 @@ const POIDS: Record<string, {
       <div class="grid gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-16">
         <div>
           <span class="eyebrow">Se repérer</span>
-          <h2 data-anim="lignes" class="h-lg mt-6">À quelle distance ?</h2>
+          <h2 data-anim="lignes" data-contenu="digne.distances.titre" class="h-lg mt-6">À quelle distance ?</h2>
           <dl class="mt-9">
             {[
               ['Centre-ville de Digne', 'à deux pas'],
@@ -236,7 +236,7 @@ const POIDS: Record<string, {
   <!-- Vers la réservation -->
   <section class="section">
     <div class="container-x flex flex-wrap items-center justify-between gap-8 border-t border-hair pt-14">
-      <p class="lead max-w-md">Le chalet est au milieu de tout cela, au calme de son jardin.</p>
+      <p data-contenu="digne.conclusion" class="lead max-w-md">Le chalet est au milieu de tout cela, au calme de son jardin.</p>
       <div class="flex flex-wrap gap-4">
         <a href="/le-chalet" class="btn btn-ghost">Découvrir le chalet</a>
         <a href={VILLA.airbnb} target="_blank" rel="noopener" class="btn btn-primary">Réserver</a>

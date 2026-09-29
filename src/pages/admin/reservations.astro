@@ -3,20 +3,46 @@ export const prerender = false;
 
 import Admin from '../../layouts/Admin.astro';
 import { exigeAdmin } from '../../lib/serveur/auth';
-import { config, lis, bornes } from '../../lib/serveur/base';
+import { config, lis, bornes, changeStatutOccupation } from '../../lib/serveur/base';
 
 const garde = await exigeAdmin(Astro);
 if (garde.refus) return garde.refus;
 
 const c = config((Astro.locals as any).runtime?.env)!;
 
+let confirmation = '';
+let erreurAction = '';
+if (Astro.request.method === 'POST') {
+  const origine = Astro.request.headers.get('origin');
+  if (origine && origine !== Astro.url.origin) {
+    return new Response('Origine refusée.', { status: 403 });
+  }
+
+  const formulaire = await Astro.request.formData();
+  const occupation = String(formulaire.get('occupation') ?? '');
+  const statut = String(formulaire.get('statut') ?? '');
+  if (!occupation || !['option', 'confirme', 'annule'].includes(statut)) {
+    erreurAction = 'Action invalide.';
+  } else {
+    try {
+      const modifie = await changeStatutOccupation(
+        c, occupation, statut as 'option' | 'confirme' | 'annule', garde.session.email,
+      );
+      confirmation = modifie ? 'La réservation a été mise à jour.' : 'Aucune modification nécessaire.';
+    } catch (e) {
+      erreurAction = 'La réservation n’a pas pu être mise à jour.';
+      console.error('[admin] changement de statut', e);
+    }
+  }
+}
+
 let occupations: any[] = [];
 let erreur = '';
 try {
   occupations = await lis(
     c,
-    'occupations?select=reference,periode,origine,statut,voyageurs,nom,email,' +
-      'telephone,total_cents,acompte_cents,cree_le&order=cree_le.desc&limit=500',
+    'occupations?select=id,reference,periode,origine,statut,voyageurs,nom,email,' +
+      'telephone,message,total_cents,acompte_cents,cree_le&order=cree_le.desc&limit=500',
   );
 } catch (e) {
   erreur = 'Lecture des réservations impossible.';
@@ -55,6 +81,8 @@ const compte = (s: string) => occupations.filter((o) => o.statut === s).length;
   sous_titre={`${occupations.length} occupation${occupations.length > 1 ? 's' : ''}, la plus récente en premier`}
 >
   {erreur && <div class="note attention">{erreur}</div>}
+  {erreurAction && <div class="note attention" role="alert">{erreurAction}</div>}
+  {confirmation && <div class="note succes" role="status">{confirmation}</div>}
 
   <div class="chiffres">
     <div class="chiffre"><div class="n">{compte('confirme')}</div><div class="l">Confirmées</div></div>
@@ -75,11 +103,12 @@ const compte = (s: string) => occupations.filter((o) => o.statut === s).length;
             <th>Origine</th>
             <th>Statut</th>
             <th style="text-align:right">Total</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {occupations.length === 0 ? (
-            <tr><td colspan="7" class="vide">Aucune réservation pour l’instant.</td></tr>
+            <tr><td colspan="8" class="vide">Aucune réservation pour l’instant.</td></tr>
           ) : (
             occupations.map((o) => {
               const b = bornes(o.periode);
@@ -94,6 +123,8 @@ const compte = (s: string) => occupations.filter((o) => o.statut === s).length;
                       ? <><div style="font-weight:500">{o.nom}</div>
                           <div style="color:#6b6b76;font-size:0.82rem">{o.email}</div></>
                       : <span style="color:#a0a0aa">Blocage</span>}
+                    {o.telephone && <div style="color:#6b6b76;font-size:0.82rem">{o.telephone}</div>}
+                    {o.message && <details class="demande"><summary>Voir la demande</summary><p>{o.message}</p></details>}
                   </td>
                   <td>
                     {b
@@ -118,6 +149,28 @@ const compte = (s: string) => occupations.filter((o) => o.statut === s).length;
                           )}</>
                       : <span style="color:#a0a0aa">—</span>}
                   </td>
+                  <td>
+                    {o.origine === 'site' ? (
+                      <form method="POST" class="actions-statut">
+                        <input type="hidden" name="occupation" value={o.id} />
+                        {o.statut !== 'confirme' && (
+                          <button type="submit" name="statut" value="confirme" class="mini confirmer">
+                            Confirmer
+                          </button>
+                        )}
+                        {o.statut !== 'annule' && (
+                          <button type="submit" name="statut" value="annule" class="mini annuler">
+                            Annuler
+                          </button>
+                        )}
+                        {o.statut === 'annule' && (
+                          <button type="submit" name="statut" value="option" class="mini">
+                            Remettre en option
+                          </button>
+                        )}
+                      </form>
+                    ) : <span style="color:#a0a0aa">—</span>}
+                  </td>
                 </tr>
               );
             })
@@ -133,3 +186,14 @@ const compte = (s: string) => occupations.filter((o) => o.statut === s).length;
     suit cette règle.
   </div>
 </Admin>
+
+<style>
+  .actions-statut { display: flex; flex-wrap: wrap; gap: .4rem; min-width: 9rem; }
+  .mini { border: 1px solid #cfcfd7; border-radius: 5px; padding: .35rem .55rem; background: #fff; color: #26262c; font: inherit; font-size: .78rem; cursor: pointer; }
+  .mini.confirmer { border-color: #9bc7a8; color: #15552d; background: #f1faf3; }
+  .mini.annuler { border-color: #e3aaaa; color: #8c1d1d; background: #fff5f5; }
+  .demande { margin-top: .35rem; max-width: 20rem; }
+  .demande summary { color: #020946; cursor: pointer; font-size: .8rem; }
+  .demande p { margin-top: .35rem; white-space: normal; color: #4a4a55; font-size: .82rem; line-height: 1.45; }
+  .succes { border-left-color: #1d6b3a; background: #ecf7ef; color: #15552d; margin-bottom: 1rem; }
+</style>

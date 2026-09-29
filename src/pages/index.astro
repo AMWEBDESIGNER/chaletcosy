@@ -83,7 +83,7 @@ const VOYAGEURS = [
           titre lisible — c'est la seule chose qui compte ici. */}
       <h1 class="fronti__nom" data-nom>Chalet Cosy</h1>
 
-      <p class="fronti__dit" data-fronti-dit>
+      <p class="fronti__dit" data-fronti-dit data-contenu="accueil.hero.texte">
         Un chalet de bois tout confort au pied de la montagne&nbsp;— à deux pas des thermes.
       </p>
 
@@ -123,7 +123,7 @@ const VOYAGEURS = [
        c'est ce qui la distingue d'un slogan. -->
   <section class="bande-cite">
     <div class="mesure mesure--etroite">
-      <p class="enonce" data-anim="lignes">
+      <p class="enonce" data-anim="lignes" data-contenu="accueil.introduction">
         Un chalet de mélèze posé dans un jardin, au pied des montagnes de Digne.
         On y entend le vent dans les arbres, les oiseaux, et rien d’autre.
       </p>
@@ -138,18 +138,19 @@ const VOYAGEURS = [
     <div class="mesure">
       <div class="editorial" data-colonnes>
         <figure class="editorial__tall hover-zoom">
-          <Photo src="/images/chalet/coursive-lumiere.webp" sizes="tiers" loading="lazy" decoding="async"
-                 alt="La coursive en bois qui longe le chalet, éclairée à la nuit tombée"
+          <Photo src="/images/chalet/jardin-pelouse.webp" sizes="tiers" loading="lazy" decoding="async"
+                 alt="Le jardin du chalet ouvert sur la montagne boisée"
+                 data-contenu-image="accueil.presentation.image"
                  class="h-full w-full object-cover" />
         </figure>
 
         <div class="editorial__text">
-          <p class="prose-body">
+          <p class="prose-body" data-contenu="accueil.presentation.texte1">
             Du bois partout, dedans comme dehors : un cadre apaisant, entre nature et
             thermes, pensé pour les curistes, les randonneurs, les saisonniers et les
             professionnels en déplacement.
           </p>
-          <p class="prose-body mt-5">
+          <p class="prose-body mt-5" data-contenu="accueil.presentation.texte2">
             {VILLA.surface} m² de plain-pied. Une chambre, un canapé convertible, une salle
             d’eau. Jusqu’à {VILLA.guests} voyageurs. On loue le chalet entier.
           </p>
@@ -197,7 +198,7 @@ const VOYAGEURS = [
   <section class="bande bg-ink text-bone">
     <div class="mesure">
       <div class="flex flex-wrap items-end justify-between gap-x-8 gap-y-5">
-        <h2 data-anim="lignes" class="h-lg">Un chalet,<br />cinq façons d’y venir.</h2>
+        <h2 data-anim="lignes" data-contenu="accueil.voyageurs.titre" class="h-lg">Un chalet,<br />cinq façons d’y venir.</h2>
         <a href="/digne-les-bains" class="link-arrow !text-bone">
           Voir les environs
           <svg width="26" height="8" viewBox="0 0 26 8" fill="none" aria-hidden="true">
@@ -255,7 +256,7 @@ const VOYAGEURS = [
                class="h-full w-full object-cover" />
         <div class="galet__texte">
           <h2 class="galet__titre">Digne-les-Bains</h2>
-          <p class="galet__dit" data-anim="montee">
+          <p class="galet__dit" data-anim="montee" data-contenu="accueil.digne.texte">
             Capitale de la lavande, ville thermale et ensoleillée, entre Alpes et Provence.
             Et à deux heures de la Côte d’Azur.
           </p>
@@ -346,7 +347,7 @@ const VOYAGEURS = [
        suite : titre centré, texte, puis deux tuiles. -->
   <section class="bande bg-sand">
     <div class="mesure">
-      <h2 data-anim="lignes" class="titre-bloc">Le chalet entier, pour vous seuls.</h2>
+      <h2 data-anim="lignes" data-contenu="accueil.conclusion" class="titre-bloc">Le chalet entier, pour vous seuls.</h2>
       <p class="prose-body mesure--etroite mt-7 text-center">
         Une chambre, un canapé convertible, {VILLA.guests} voyageurs au plus. À la semaine
         ou pour quelques nuits — et les longs séjours sont les bienvenus.
@@ -664,6 +665,25 @@ const VOYAGEURS = [
     margin-top: 1.1rem; font-family: theme('fontFamily.sans');
     font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.18em;
     color: rgb(243 238 226 / 0.66);
+  }
+
+  /* Sur tactile, la traversée reste horizontale mais se fait directement au
+     doigt. La page conserve ainsi son défilement vertical natif sur Safari. */
+  @media (hover: none), (pointer: coarse) {
+    .bande-fil--tactile { overflow: visible; padding-block: clamp(3rem, 8vw, 6rem); }
+    .bande-fil--tactile .bande-fil__piste {
+      height: auto;
+      max-width: 100vw;
+      overflow-x: auto;
+      overflow-y: hidden;
+      padding-block: 1rem 2rem;
+      scroll-snap-type: x proximity;
+      overscroll-behavior-inline: contain;
+      -webkit-overflow-scrolling: touch;
+      will-change: auto;
+    }
+    .bande-fil--tactile .bande-fil__dit,
+    .bande-fil--tactile .bande-fil__vue { scroll-snap-align: start; }
   }
 
   /* Sans JS — ou en mouvement réduit — la piste ne peut pas être tirée :

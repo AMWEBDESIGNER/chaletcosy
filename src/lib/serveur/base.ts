@@ -204,6 +204,68 @@ export function lis(c: Config, requete: string): Promise<any[]> {
   return appelle(c, requete, { method: 'GET' }).then((r) => r ?? []);
 }
 
+/** Modifie le statut d'une occupation et journalise l'action en base. */
+export function changeStatutOccupation(
+  c: Config,
+  occupation: string,
+  statut: 'option' | 'confirme' | 'annule',
+  acteur: string,
+): Promise<boolean> {
+  return rpc(c, 'admin_modifier_statut', {
+    p_occupation: occupation,
+    p_statut: statut,
+    p_acteur: acteur,
+  });
+}
+
+/** Enregistre un texte ou une URL d'image modifiable depuis le back-office. */
+export async function enregistreContenu(
+  c: Config,
+  cle: string,
+  valeur: string,
+  type: 'texte' | 'image',
+  acteur: string,
+): Promise<void> {
+  await appelle(c, 'contenus_site?on_conflict=cle', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({ cle, valeur, type, maj_par: acteur }),
+  });
+  await appelle(c, 'journal', {
+    method: 'POST',
+    headers: { Prefer: 'return=minimal' },
+    body: JSON.stringify({ action: 'contenu_modifie', detail: { cle, type }, acteur }),
+  });
+}
+
+/** Dépose une image dans le bucket public du site et rend son URL. */
+export async function enregistreImage(
+  c: Config,
+  fichier: File,
+  cle: string,
+): Promise<string> {
+  const extension = fichier.type === 'image/png' ? 'png'
+    : fichier.type === 'image/avif' ? 'avif'
+      : fichier.type === 'image/webp' ? 'webp' : 'jpg';
+  const nom = `${cle.replace(/[^a-z0-9.-]+/gi, '-')}-${Date.now()}.${extension}`;
+  const chemin = `contenu/${nom}`;
+  const res = await fetch(`${c.url}/storage/v1/object/medias-site/${chemin}`, {
+    method: 'POST',
+    headers: {
+      apikey: c.cle,
+      Authorization: `Bearer ${c.cle}`,
+      'Content-Type': fichier.type,
+      'x-upsert': 'false',
+    },
+    body: await fichier.arrayBuffer(),
+  });
+  if (!res.ok) {
+    console.error('[contenu] upload image', res.status, (await res.text()).slice(0, 300));
+    throw new ErreurBase('Envoi de l’image impossible.', String(res.status), res.status);
+  }
+  return `${c.url}/storage/v1/object/public/medias-site/${chemin}`;
+}
+
 /**
  * Décode un `daterange` tel que PostgREST le sert : `[2026-07-10,2026-07-14)`.
  *

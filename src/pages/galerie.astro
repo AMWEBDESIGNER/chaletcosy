@@ -57,11 +57,11 @@ const jsonLd = [breadcrumb(Astro.site, trail), imageGallery(Astro.site)];
     <div class="max-w-3xl">
       <Breadcrumb trail={trail} />
       <span class="eyebrow">Galerie</span>
-      <h1 class="display mt-6 !text-[clamp(2.3rem,5.6vw,4.6rem)]">
+      <h1 data-contenu="galerie.titre" class="display mt-6 !text-[clamp(2.3rem,5.6vw,4.6rem)]">
         <span data-anim="lignes" class="block">Le chalet,</span>
         <span class="block">en <span class="script script--accent">images</span></span>
       </h1>
-      <p class="lead mt-7 max-w-xl">
+      <p data-contenu="galerie.introduction" class="lead mt-7 max-w-xl">
         {GALLERY.length} photographies, de l’allée au jardin. Cliquez sur une image
         pour l’agrandir, puis naviguez aux flèches.
       </p>
@@ -123,7 +123,7 @@ const jsonLd = [breadcrumb(Astro.site, trail), imageGallery(Astro.site)];
   <!-- Vers la réservation -->
   <section class="section !pt-0">
     <div class="container-x flex flex-wrap items-center justify-between gap-8 border-t border-hair pt-14">
-      <p class="lead max-w-md">Un chalet, un jardin, la montagne. Dites-nous vos dates.</p>
+      <p data-contenu="galerie.conclusion" class="lead max-w-md">Un chalet, un jardin, la montagne. Dites-nous vos dates.</p>
       <div class="flex flex-wrap gap-4">
         <a href="/le-chalet" class="btn btn-ghost">Le chalet en détail</a>
         <a href={VILLA.airbnb} target="_blank" rel="noopener" class="btn btn-primary">Réserver</a>

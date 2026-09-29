@@ -13,6 +13,7 @@ import { monterQuandPret, demonter as demonterAnim } from './anim';
 import { initReserver } from './reserver';
 import { initPaiement } from './paiement';
 import { onFrame, lerp, clamp01, range, type Cleanup } from './raf';
+import { appliqueContenu } from './contenu-public';
 
 gsap.registerPlugin(Flip);
 
@@ -355,9 +356,14 @@ function header() {
 }
 
 /* ---------- Cycle de vie ---------- */
-function init() {
+async function init() {
   teardown();
   reduce = reduceMQ.matches;
+
+  /* Le CMS doit avoir remplacé les textes avant SplitText : modifier le
+     contenu après le découpage détruirait ses masques et les animations
+     garderaient des références vers des nœuds qui n'existent plus. */
+  await appliqueContenu();
 
   header();
   rollLabels();
@@ -380,5 +386,5 @@ function init() {
   cleanups.push(demonterAnim);
 }
 
-document.addEventListener('astro:page-load', init);
+document.addEventListener('astro:page-load', () => { void init(); });
 document.addEventListener('astro:before-swap', teardown);

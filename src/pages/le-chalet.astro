@@ -21,11 +21,11 @@ const jsonLd = [breadcrumb(Astro.site, trail), faq()];
     <div class="max-w-3xl">
       <Breadcrumb trail={trail} />
       <span class="eyebrow">Le chalet</span>
-      <h1 class="display mt-6 !text-[clamp(2.3rem,5.6vw,4.6rem)]">
+      <h1 data-contenu="chalet.titre" class="display mt-6 !text-[clamp(2.3rem,5.6vw,4.6rem)]">
         <span data-anim="lignes" class="block">Tout le confort,</span>
         <span class="block">en <span class="script script--accent">bois</span></span>
       </h1>
-      <p class="lead mt-7 max-w-xl">
+      <p data-contenu="chalet.introduction" class="lead mt-7 max-w-xl">
         {VILLA.surface} m² de plain-pied, une chambre, un canapé convertible et une salle
         d’eau, une terrasse et un jardin. Le chalet se loue entier : rien n’est partagé.
       </p>
@@ -65,7 +65,7 @@ const jsonLd = [breadcrumb(Astro.site, trail), faq()];
       </div>
       <div>
         <span class="eyebrow">L’esprit du lieu</span>
-        <h2 data-anim="lignes" class="h-lg mt-6">Un chalet au pied de la montagne.</h2>
+        <h2 data-anim="lignes" data-contenu="chalet.presentation.titre" class="h-lg mt-6">Un chalet au pied de la montagne.</h2>
         <div class="prose-body mt-7 max-w-prose space-y-5">
           <p>
             Chalet Cosy est un chalet de mélèze posé au fond d’une allée de gravier, dans un
@@ -196,7 +196,7 @@ const jsonLd = [breadcrumb(Astro.site, trail), faq()];
     <div class="container-x grid items-center gap-12 lg:grid-cols-2 lg:gap-20">
       <div>
         <span class="eyebrow !text-bronze-lt">À la semaine, au mois</span>
-        <h2 data-anim="lignes" class="h-xl mt-6 text-bone">Cures, missions, saisons.</h2>
+        <h2 data-anim="lignes" data-contenu="chalet.longsejour.titre" class="h-xl mt-6 text-bone">Cures, missions, saisons.</h2>
         <p class="lead mt-7 max-w-md !text-bone/80">
           Le chalet se loue à la semaine, et les courts séjours restent possibles. Pour une
           cure thermale de trois semaines, une mission ou une saison, les séjours de 28 nuits
@@ -220,7 +220,7 @@ const jsonLd = [breadcrumb(Astro.site, trail), faq()];
     <div class="container-x grid gap-14 lg:grid-cols-[1fr_1fr] lg:gap-20">
       <div>
         <span class="eyebrow">Le séjour</span>
-        <h2 data-anim="lignes" class="h-lg mt-6">Ce qu’il faut savoir avant de venir.</h2>
+        <h2 data-anim="lignes" data-contenu="chalet.infos.titre" class="h-lg mt-6">Ce qu’il faut savoir avant de venir.</h2>
         <dl class="mt-9">
           {[
             ['Arrivée', VILLA.checkIn],

@@ -65,6 +65,13 @@ let splits: SplitText[] = [];
 let ecouteurs: Array<() => void> = [];
 
 const reduit = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* Sur iOS, les effets pilotés image par image par le scroll (lissage,
+   parallaxe et pin) se battent avec l'inertie native et les variations de
+   hauteur provoquées par les barres de Safari. Le résultat est un léger
+   va-et-vient, surtout à l'entrée et à la sortie d'une section épinglée.
+   Les animations ponctuelles restent actives ; seuls les effets continus
+   sont remplacés par le défilement natif sur un écran tactile. */
+const tactile = () => matchMedia('(hover: none), (pointer: coarse)').matches;
 
 /* ============================================================
    LES GESTES
@@ -358,6 +365,10 @@ function nomCinema() {
 
   if (repere) tl.from(repere, { opacity: 0, duration: 0.9 }, '-=0.5');
 
+  // L'entrée cinématographique reste intacte sur mobile, mais son retrait
+  // scrubé est supprimé : Safari doit rester l'unique pilote du scroll.
+  if (tactile()) return;
+
   /* ---------- Le retrait ----------
      Scrub assumé : ce n'est pas une apparition mais un déplacement dans la
      profondeur, et il doit suivre le doigt exactement. */
@@ -445,7 +456,21 @@ function bandeHorizontale() {
     const piste = sec.querySelector<HTMLElement>('[data-bande-piste]');
     if (!piste) return;
 
-    const course = () => piste.scrollWidth - window.innerWidth;
+    /* Sur iPhone, `pin` modifie la hauteur et la largeur du document pendant
+       que les barres de Safari se replient. Le navigateur peut alors croire
+       que la page est plus large que l'écran (effet de zoom) et retenir le
+       défilement vertical. La composition reste horizontale, mais devient
+       une galerie tactile native : inertie iOS, aimantation douce, et aucun
+       verrou sur la descente. */
+    if (tactile()) {
+      sec.classList.add('bande-fil--tactile');
+      piste.style.removeProperty('transform');
+      return;
+    }
+
+    // `clientWidth` reste stable quand les barres de Safari apparaissent ou
+    // disparaissent, contrairement aux dimensions du viewport visuel.
+    const course = () => piste.scrollWidth - document.documentElement.clientWidth;
     if (course() <= 0) return;
 
     gsap.to(piste, {
@@ -459,7 +484,10 @@ function bandeHorizontale() {
         // sensation d'un défilement qui « patine ».
         end: () => '+=' + course(),
         pin: true,
-        scrub: 0.6,
+        // Sur tactile, aucun retard entre le doigt et la piste : le scrub
+        // amorti peut continuer à rattraper sa cible après la fin du geste et
+        // donner une impression de rebond. La version souris garde sa douceur.
+        scrub: tactile() ? true : 0.6,
         invalidateOnRefresh: true,
         anticipatePin: 1,
       },
@@ -660,7 +688,15 @@ export function monter() {
      `effects: true` active `data-speed` et `data-lag` : la parallaxe des
      images devient déclarative, sans une ligne de script. */
   const enveloppe = document.getElementById('smooth-wrapper');
-  if (enveloppe) {
+  const estTactile = tactile();
+  if (estTactile) {
+    // Les barres de Safari modifient fréquemment la hauteur visible pendant
+    // un geste. Ne pas reconstruire tous les repères pour ces micro-resizes
+    // évite le saut de la section épinglée sans bloquer les vrais changements
+    // d'orientation ou de largeur.
+    ScrollTrigger.config({ ignoreMobileResize: true });
+  }
+  if (enveloppe && !estTactile) {
     smoother = ScrollSmoother.create({
       wrapper: '#smooth-wrapper',
       content: '#smooth-content',
@@ -774,10 +810,14 @@ export function monter() {
   /* ---------- 4. La profondeur ----------
      Le hero garde sa parallaxe déclarative (`data-speed`, ScrollSmoother).
      Le reste suit ici. */
-  deriveImages();
-  deriveColonnes();
+  if (!estTactile) {
+    deriveImages();
+    deriveColonnes();
+    pileCartes();
+  }
+  // La traversée horizontale reste le geste signature sur tous les écrans.
+  // Sur tactile elle fonctionne avec le scroll natif, sans ScrollSmoother.
   bandeHorizontale();
-  pileCartes();
 
   /* ---------- 5. Les interactions ---------- */
   boutonsMagnetiques();
