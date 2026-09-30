@@ -42,7 +42,10 @@ if (Astro.request.method === 'POST') {
 }
 
 const configure = Boolean(config(runtime)) && Boolean(
-  runtime?.SUPABASE_ANON_KEY ?? (import.meta.env as any)?.SUPABASE_ANON_KEY
+  runtime?.SUPABASE_PUBLISHABLE_KEY
+    ?? (import.meta.env as any)?.SUPABASE_PUBLISHABLE_KEY
+    ?? runtime?.SUPABASE_ANON_KEY
+    ?? (import.meta.env as any)?.SUPABASE_ANON_KEY
 );
 ---
 <!DOCTYPE html>

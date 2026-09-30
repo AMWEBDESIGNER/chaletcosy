@@ -28,7 +28,11 @@ export interface Config {
 /** Lit la configuration, ou dit qu'elle manque — sans jamais divulguer la clé. */
 export function config(runtime: any): Config | null {
   const url = runtime?.SUPABASE_URL ?? (import.meta.env as any)?.SUPABASE_URL ?? '';
-  const cle = runtime?.SUPABASE_SERVICE_KEY ?? (import.meta.env as any)?.SUPABASE_SERVICE_KEY ?? '';
+  const cle = runtime?.SUPABASE_SECRET_KEY
+    ?? (import.meta.env as any)?.SUPABASE_SECRET_KEY
+    ?? runtime?.SUPABASE_SERVICE_KEY
+    ?? (import.meta.env as any)?.SUPABASE_SERVICE_KEY
+    ?? '';
   return url && cle ? { url: url.replace(/\/+$/, ''), cle } : null;
 }
 

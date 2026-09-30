@@ -63,7 +63,7 @@ interface ConfigAuth {
 function configAuth(runtime: any): ConfigAuth | null {
   const env = (k: string) => runtime?.[k] ?? (import.meta.env as any)?.[k] ?? '';
   const url = env('SUPABASE_URL');
-  const anon = env('SUPABASE_ANON_KEY');
+  const anon = env('SUPABASE_PUBLISHABLE_KEY') || env('SUPABASE_ANON_KEY');
   return url && anon ? { url: url.replace(/\/+$/, ''), anon } : null;
 }
 
