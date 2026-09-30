@@ -20,9 +20,11 @@ interface Props {
   email: string;
   /** Fil d'Ariane facultatif, sous le titre. */
   sous_titre?: string;
+  /** Étend les outils visuels sur toute la largeur disponible. */
+  plein?: boolean;
 }
 
-const { titre, email, sous_titre } = Astro.props;
+const { titre, email, sous_titre, plein = false } = Astro.props;
 const ici = Astro.url.pathname;
 
 const ONGLETS = [
@@ -107,6 +109,7 @@ const ONGLETS = [
 
     /* ---- Le corps ---- */
     .page { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+    .page.pleine { max-width: none; padding: 1rem; }
     .titre-page { margin-bottom: 1.75rem; }
     .titre-page h1 { font-size: 1.6rem; color: var(--nuit); font-weight: 600; }
     .titre-page p { color: var(--gris); font-size: 0.92rem; }
@@ -173,7 +176,7 @@ const ONGLETS = [
     </nav>
   </div>
 
-  <div class="page">
+  <div class:list={['page', plein && 'pleine']}>
     <div class="titre-page">
       <h1>{titre}</h1>
       {sous_titre && <p>{sous_titre}</p>}

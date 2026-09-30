@@ -3,125 +3,182 @@ export const prerender = false;
 
 import Admin from '../../layouts/Admin.astro';
 import { exigeAdmin } from '../../lib/serveur/auth';
-import { config, lis, enregistreContenu, enregistreImage } from '../../lib/serveur/base';
-import { CHAMPS_CONTENU, CHAMPS_PAR_CLE } from '../../lib/contenu-site';
+import { config, lis } from '../../lib/serveur/base';
+import { CHAMPS_CONTENU } from '../../lib/contenu-site';
 
 const garde = await exigeAdmin(Astro);
 if (garde.refus) return garde.refus;
 
 const c = config((Astro.locals as any).runtime?.env)!;
-let message = '';
-let erreur = '';
-
-const origineValide = () => {
-  const origine = Astro.request.headers.get('origin');
-  return !origine || origine === Astro.url.origin;
-};
-
-if (Astro.request.method === 'POST') {
-  if (!origineValide()) {
-    return new Response('Origine refusée.', { status: 403 });
-  }
-
-  const formulaire = await Astro.request.formData();
-  const cle = String(formulaire.get('cle') ?? '');
-  const champ = CHAMPS_PAR_CLE.get(cle);
-
-  if (!champ) {
-    erreur = 'Ce contenu n’est pas modifiable.';
-  } else {
-    try {
-      if (champ.type === 'image') {
-        const fichier = formulaire.get('image');
-        if (!(fichier instanceof File) || fichier.size === 0) {
-          throw new Error('Choisissez une image.');
-        }
-        if (!['image/jpeg', 'image/png', 'image/webp', 'image/avif'].includes(fichier.type)) {
-          throw new Error('Format accepté : JPEG, PNG, WebP ou AVIF.');
-        }
-        if (fichier.size > 8 * 1024 * 1024) {
-          throw new Error('L’image ne doit pas dépasser 8 Mo.');
-        }
-        const url = await enregistreImage(c, fichier, cle);
-        await enregistreContenu(c, cle, url, 'image', garde.session.email);
-      } else {
-        const valeur = String(formulaire.get('valeur') ?? '').trim();
-        if (!valeur) throw new Error('Le texte ne peut pas être vide.');
-        if (valeur.length > 3000) throw new Error('Le texte est trop long.');
-        await enregistreContenu(c, cle, valeur, 'texte', garde.session.email);
-      }
-      return Astro.redirect(`/admin/contenu?enregistre=${encodeURIComponent(cle)}`, 303);
-    } catch (e) {
-      erreur = e instanceof Error ? e.message : 'Enregistrement impossible.';
-      console.error('[admin] contenu', e);
-    }
-  }
-}
-
-if (Astro.url.searchParams.has('enregistre')) message = 'Modification enregistrée.';
-
 let valeurs: Record<string, string> = {};
+let erreur = '';
 try {
   const lignes = await lis(c, 'contenus_site?select=cle,valeur');
   valeurs = Object.fromEntries(lignes.map((ligne) => [ligne.cle, ligne.valeur]));
 } catch (e) {
-  erreur ||= 'Lecture du contenu impossible. Vérifiez que le schéma Supabase a été mis à jour.';
+  erreur = 'Lecture du contenu impossible. Vérifiez le schéma Supabase.';
   console.error('[admin] contenu lecture', e);
 }
 
-const pages = [...new Set(CHAMPS_CONTENU.map((champ) => champ.page))];
+const donnees = JSON.stringify({ champs: CHAMPS_CONTENU, valeurs }).replace(/</g, '\\u003c');
+const pages = [
+  ['Accueil', '/'], ['Le chalet', '/le-chalet'], ['Galerie', '/galerie'],
+  ['Digne-les-Bains', '/digne-les-bains'], ['Contact', '/contact'],
+];
 ---
-<Admin
-  titre="Contenu du site"
-  email={garde.session.email}
-  sous_titre="Modifiez les principaux textes et photographies sans toucher au code"
->
-  {message && <div class="note succes" role="status">{message}</div>}
+<Admin titre="Éditeur visuel" email={garde.session.email}
+  sous_titre="Cliquez directement sur un texte ou une photo pour le modifier" plein>
   {erreur && <div class="note attention" role="alert">{erreur}</div>}
 
-  {pages.map((page) => (
-    <section class="carte contenu-page">
-      <h2>{page}</h2>
-      <div class="contenu-grille">
-        {CHAMPS_CONTENU.filter((champ) => champ.page === page).map((champ) => {
-          const valeur = valeurs[champ.cle] ?? champ.valeur;
-          return (
-            <form method="POST" enctype="multipart/form-data" class="contenu-champ">
-              <input type="hidden" name="cle" value={champ.cle} />
-              <label for={`champ-${champ.cle}`}>{champ.libelle}</label>
-              {champ.type === 'image' ? (
-                <>
-                  <img src={valeur} alt="Aperçu actuel" class="apercu-contenu" />
-                  <input id={`champ-${champ.cle}`} type="file" name="image"
-                         accept="image/jpeg,image/png,image/webp,image/avif" required />
-                  <p class="aide">JPEG, PNG, WebP ou AVIF — 8 Mo maximum.</p>
-                </>
-              ) : (
-                <textarea id={`champ-${champ.cle}`} name="valeur" rows="4" required>{valeur}</textarea>
-              )}
-              <button type="submit" class="action-primaire">Enregistrer</button>
-            </form>
-          );
-        })}
+  <section class="cms-studio" id="cms-studio" data-format="bureau">
+    <div class="cms-barre">
+      <div class="cms-pages" role="group" aria-label="Page à modifier">
+        {pages.map(([libelle, chemin], i) => (
+          <button type="button" class="cms-page" data-chemin={chemin} aria-pressed={i === 0 ? 'true' : 'false'}>{libelle}</button>
+        ))}
       </div>
-    </section>
-  ))}
+      <div class="cms-actions">
+        <div class="cms-formats" role="group" aria-label="Format de l’aperçu">
+          <button type="button" data-format="bureau" aria-pressed="true">Ordinateur</button>
+          <button type="button" data-format="mobile" aria-pressed="false">Téléphone</button>
+        </div>
+        <a class="cms-ouvrir" href="/" target="_blank" rel="noopener">Voir le site</a>
+      </div>
+    </div>
+
+    <div class="cms-scene">
+      <div class="cms-apercu-wrap">
+        <iframe id="cms-apercu" title="Aperçu modifiable du site" src="/?edition=1"></iframe>
+      </div>
+      <aside class="cms-panneau" id="cms-panneau" hidden aria-live="polite">
+        <div class="cms-panneau-tete">
+          <div><p class="cms-kicker">Élément sélectionné</p><h2 id="cms-titre">Modifier</h2></div>
+          <button type="button" id="cms-fermer" class="cms-fermer" aria-label="Fermer le panneau">×</button>
+        </div>
+        <form id="cms-form">
+          <input type="hidden" name="cle" id="cms-cle" />
+          <div id="cms-texte-zone">
+            <label for="cms-valeur">Texte</label>
+            <textarea id="cms-valeur" name="valeur" rows="8" maxlength="3000"></textarea>
+            <p class="cms-aide"><span id="cms-compteur">0</span>/3000 caractères</p>
+          </div>
+          <div id="cms-image-zone" hidden>
+            <img id="cms-image-apercu" alt="Image actuelle" />
+            <label for="cms-image">Nouvelle image</label>
+            <input id="cms-image" name="image" type="file" accept="image/jpeg,image/png,image/webp,image/avif" />
+            <p class="cms-aide">JPEG, PNG, WebP ou AVIF · 8 Mo maximum.</p>
+          </div>
+          <button class="cms-enregistrer" id="cms-enregistrer" type="submit">Enregistrer la modification</button>
+          <p class="cms-etat" id="cms-etat" role="status"></p>
+        </form>
+      </aside>
+    </div>
+  </section>
+  <script id="cms-data" type="application/json" set:html={donnees}></script>
 </Admin>
 
-<style>
-  .contenu-page + .contenu-page { margin-top: 1.5rem; }
-  .contenu-grille { display: grid; gap: 1.25rem; }
-  .contenu-champ { border-top: 1px solid #e3e3e8; padding-top: 1.15rem; }
-  .contenu-champ:first-child { border-top: 0; padding-top: 0; }
-  label { display: block; margin-bottom: .45rem; color: #020946; font-weight: 600; }
-  textarea, input[type='file'] {
-    width: 100%; border: 1px solid #d8d8e0; border-radius: 6px;
-    padding: .7rem .8rem; font: inherit; background: #fcfcfd;
+<script>
+  const data = JSON.parse(document.getElementById('cms-data')?.textContent || '{}');
+  const champs = new Map((data.champs || []).map((champ: any) => [champ.cle, champ]));
+  const valeurs: Record<string, string> = { ...(data.valeurs || {}) };
+  const studio = document.getElementById('cms-studio')!;
+  const cadre = document.getElementById('cms-apercu') as HTMLIFrameElement;
+  const panneau = document.getElementById('cms-panneau')!;
+  const form = document.getElementById('cms-form') as HTMLFormElement;
+  const cleInput = document.getElementById('cms-cle') as HTMLInputElement;
+  const valeurInput = document.getElementById('cms-valeur') as HTMLTextAreaElement;
+  const imageInput = document.getElementById('cms-image') as HTMLInputElement;
+  const imageApercu = document.getElementById('cms-image-apercu') as HTMLImageElement;
+  const texteZone = document.getElementById('cms-texte-zone')!;
+  const imageZone = document.getElementById('cms-image-zone')!;
+  const etat = document.getElementById('cms-etat')!;
+  const compteur = document.getElementById('cms-compteur')!;
+  let selection: any = null;
+  const valeur = (champ: any) => valeurs[champ.cle] ?? champ.valeur;
+
+  function applique(doc: Document) {
+    champs.forEach((champ: any) => {
+      const v = valeur(champ);
+      if (champ.type === 'image') {
+        doc.querySelectorAll<HTMLImageElement>(`[data-contenu-image="${CSS.escape(champ.cle)}"]`).forEach((img) => {
+          img.closest('picture')?.querySelectorAll('source').forEach((source) => source.remove());
+          img.src = v;
+        });
+      } else {
+        doc.querySelectorAll<HTMLElement>(`[data-contenu="${CSS.escape(champ.cle)}"]`).forEach((el) => { el.textContent = v; });
+      }
+    });
   }
-  textarea { resize: vertical; min-height: 7rem; line-height: 1.5; }
-  textarea:focus, input:focus { outline: 2px solid rgba(2, 9, 70, .18); border-color: #020946; }
-  .apercu-contenu { display: block; width: min(100%, 420px); max-height: 240px; object-fit: cover; margin-bottom: .8rem; border-radius: 6px; }
-  .aide { color: #6b6b76; font-size: .8rem; margin-top: .4rem; }
-  .action-primaire { margin-top: .75rem; border: 0; border-radius: 6px; padding: .6rem 1rem; background: #020946; color: white; font: inherit; font-weight: 600; cursor: pointer; }
-  .succes { border-left-color: #1d6b3a; background: #ecf7ef; color: #15552d; margin-bottom: 1.5rem; }
+
+  function ouvre(cle: string) {
+    const champ: any = champs.get(cle);
+    if (!champ) return;
+    selection = champ;
+    cleInput.value = champ.cle;
+    document.getElementById('cms-titre')!.textContent = champ.libelle;
+    etat.textContent = ''; etat.className = 'cms-etat';
+    texteZone.hidden = champ.type !== 'texte'; imageZone.hidden = champ.type !== 'image';
+    if (champ.type === 'texte') {
+      valeurInput.value = valeur(champ); compteur.textContent = String(valeurInput.value.length);
+      requestAnimationFrame(() => valeurInput.focus());
+    } else { imageApercu.src = valeur(champ); imageInput.value = ''; }
+    panneau.hidden = false;
+  }
+
+  function prepareApercu() {
+    const doc = cadre.contentDocument;
+    if (!doc?.body) return;
+    applique(doc);
+    if (!doc.getElementById('cms-style')) {
+      const style = doc.createElement('style'); style.id = 'cms-style';
+      style.textContent = `[data-contenu],[data-contenu-image]{cursor:pointer!important;outline:2px dashed transparent;outline-offset:5px;transition:outline-color .15s,box-shadow .15s}[data-contenu]:hover,[data-contenu-image]:hover{outline-color:#ecd1a9!important;box-shadow:0 0 0 6px rgba(28,42,32,.42)!important}`;
+      doc.head.appendChild(style);
+    }
+    doc.querySelectorAll<HTMLElement>('[data-contenu]').forEach((el) => {
+      el.onclick = (e) => { e.preventDefault(); e.stopPropagation(); ouvre(el.dataset.contenu || ''); };
+    });
+    doc.querySelectorAll<HTMLElement>('[data-contenu-image]').forEach((el) => {
+      el.onclick = (e) => { e.preventDefault(); e.stopPropagation(); ouvre(el.dataset.contenuImage || ''); };
+    });
+  }
+
+  cadre.addEventListener('load', () => {
+    setTimeout(prepareApercu, 150);
+    const chemin = cadre.contentWindow?.location.pathname || '/';
+    document.querySelectorAll<HTMLButtonElement>('.cms-page').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.chemin === chemin)));
+  });
+  document.querySelectorAll<HTMLButtonElement>('.cms-page').forEach((bouton) => bouton.addEventListener('click', () => {
+    panneau.hidden = true; cadre.src = `${bouton.dataset.chemin}?edition=1&t=${Date.now()}`;
+  }));
+  document.querySelectorAll<HTMLButtonElement>('[data-format]').forEach((bouton) => bouton.addEventListener('click', () => {
+    studio.dataset.format = bouton.dataset.format;
+    document.querySelectorAll<HTMLButtonElement>('[data-format]').forEach((b) => b.setAttribute('aria-pressed', String(b === bouton)));
+  }));
+  document.getElementById('cms-fermer')?.addEventListener('click', () => { panneau.hidden = true; });
+  valeurInput.addEventListener('input', () => { compteur.textContent = String(valeurInput.value.length); });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault(); if (!selection) return;
+    const bouton = document.getElementById('cms-enregistrer') as HTMLButtonElement;
+    bouton.disabled = true; bouton.textContent = 'Enregistrement…'; etat.textContent = '';
+    const fd = new FormData(); fd.set('cle', selection.cle);
+    if (selection.type === 'texte') fd.set('valeur', valeurInput.value);
+    else if (imageInput.files?.[0]) fd.set('image', imageInput.files[0]);
+    else { etat.textContent = 'Choisissez une nouvelle image.'; bouton.disabled = false; bouton.textContent = 'Enregistrer la modification'; return; }
+    try {
+      const r = await fetch('/admin/api/contenu', { method: 'POST', body: fd });
+      const resultat = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(resultat.erreur || 'Enregistrement impossible.');
+      valeurs[selection.cle] = resultat.valeur; applique(cadre.contentDocument!);
+      if (selection.type === 'image') imageApercu.src = resultat.valeur;
+      etat.textContent = 'Modification enregistrée.'; etat.className = 'cms-etat succes';
+    } catch (err) {
+      etat.textContent = err instanceof Error ? err.message : 'Enregistrement impossible.'; etat.className = 'cms-etat erreur';
+    } finally { bouton.disabled = false; bouton.textContent = 'Enregistrer la modification'; }
+  });
+</script>
+
+<style>
+  .cms-studio{border:1px solid #dcdde2;background:#e8e8eb;min-height:70vh}.cms-barre{display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;padding:.75rem;background:#fff;border-bottom:1px solid #dcdde2}.cms-pages,.cms-actions,.cms-formats{display:flex;align-items:center;gap:.4rem;overflow-x:auto}.cms-page,.cms-formats button,.cms-ouvrir{border:1px solid #dcdde2;background:#fff;color:#474752;border-radius:999px;padding:.48rem .85rem;white-space:nowrap;font:inherit;font-size:.8rem;cursor:pointer;text-decoration:none}.cms-page[aria-pressed=true],.cms-formats button[aria-pressed=true]{background:#020946;color:#fff;border-color:#020946}.cms-scene{display:flex;height:calc(100dvh - 13.5rem);min-height:580px}.cms-apercu-wrap{flex:1;min-width:0;display:flex;justify-content:center;overflow:auto;padding:1rem}#cms-apercu{width:100%;height:100%;border:0;background:#fff;box-shadow:0 8px 30px rgba(2,9,70,.12);transition:width .25s}.cms-studio[data-format=mobile] #cms-apercu{width:390px;max-width:100%;border-radius:18px}.cms-panneau{width:360px;max-width:100%;overflow:auto;padding:1.25rem;background:#fff;border-left:1px solid #dcdde2}.cms-panneau[hidden]{display:none}.cms-panneau-tete{display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;margin-bottom:1.5rem}.cms-kicker{color:#8a6b3d;font-size:.65rem;text-transform:uppercase;letter-spacing:.16em;font-weight:700}.cms-panneau h2{color:#020946;font-size:1.15rem;margin-top:.2rem}.cms-fermer{border:0;background:transparent;font-size:1.8rem;line-height:1;color:#6b6b76;cursor:pointer}.cms-panneau label{display:block;color:#020946;font-weight:600;font-size:.84rem;margin-bottom:.4rem}.cms-panneau textarea,.cms-panneau input[type=file]{width:100%;border:1px solid #d8d8e0;border-radius:7px;padding:.75rem;font:inherit;background:#fcfcfd}.cms-panneau textarea{resize:vertical;line-height:1.5}.cms-panneau textarea:focus,.cms-panneau input:focus{outline:2px solid rgba(2,9,70,.15);border-color:#020946}#cms-image-apercu{width:100%;max-height:220px;object-fit:cover;margin-bottom:1rem;border-radius:7px}.cms-aide{margin-top:.35rem;color:#74747e;font-size:.75rem}.cms-enregistrer{width:100%;margin-top:1.25rem;border:0;border-radius:7px;padding:.75rem 1rem;background:#020946;color:#fff;font:inherit;font-weight:700;cursor:pointer}.cms-enregistrer:disabled{opacity:.55;cursor:wait}.cms-etat{margin-top:.75rem;min-height:1.4em;font-size:.82rem}.cms-etat.succes{color:#17653a}.cms-etat.erreur{color:#9b2f2f}
+  @media(max-width:820px){.cms-actions{width:100%;justify-content:space-between}.cms-scene{height:68vh;min-height:520px;position:relative}.cms-panneau{position:absolute;inset:0 0 0 auto;z-index:5;box-shadow:-12px 0 35px rgba(2,9,70,.18)}.cms-barre{align-items:stretch}.cms-pages{width:100%}}
 </style>

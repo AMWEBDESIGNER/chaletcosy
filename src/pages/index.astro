@@ -5,6 +5,7 @@ import Tile from '../components/Tile.astro';
 import Reserver from '../components/Reserver.astro';
 import FormeReservation from '../components/FormeReservation.astro';
 import { VILLA, GALLERY } from '../lib/villa';
+import { cleImage } from '../lib/contenu-site';
 
 /* ============================================================
    L'accueil suit la structure de villadellatorre.it/en, relevée
@@ -66,6 +67,7 @@ const VOYAGEURS = [
         {/* Ni vidéo ni atmosphère WebGL ici, contrairement au gabarit : la
             photographie à contre-jour porte déjà la lumière qui bouge. */}
         <Photo src="/images/chalet/chalet-contre-jour.webp" sizes="pleine"
+               data-contenu-image={cleImage('/images/chalet/chalet-contre-jour.webp')}
                alt="Le chalet en bois à contre-jour, le soleil filtrant entre les pins"
                fetchpriority="high" decoding="async" class="h-full w-full object-cover" />
       </div>
@@ -160,11 +162,13 @@ const VOYAGEURS = [
         <div class="editorial__stack">
           <figure class="hover-zoom">
             <Photo src="/images/chalet/terrasse-table.webp" sizes="tiers" loading="lazy" decoding="async"
+                   data-contenu-image={cleImage('/images/chalet/terrasse-table.webp')}
                    alt="La terrasse en bois, sa table en verre et ses chaises vertes face à la montagne"
                    class="h-full w-full object-cover" />
           </figure>
           <figure class="hover-zoom">
             <Photo src="/images/chalet/fleurs-coreopsis.webp" sizes="tiers" loading="lazy" decoding="async"
+                   data-contenu-image={cleImage('/images/chalet/fleurs-coreopsis.webp')}
                    alt="Un massif de coréopsis jaunes et rouges dans le jardin"
                    class="h-full w-full object-cover" />
           </figure>
@@ -178,6 +182,7 @@ const VOYAGEURS = [
     <div class="mesure">
       <figure data-anim="capsule" data-derive class="hover-zoom aspect-[16/9] overflow-hidden bg-sand">
         <Photo src="/images/chalet/chalet-terrasse.webp" sizes="pleine" loading="lazy" decoding="async"
+               data-contenu-image={cleImage('/images/chalet/chalet-terrasse.webp')}
                alt="Le chalet en mélèze et sa grande terrasse, au soleil du matin"
                class="h-full w-full object-cover" />
       </figure>
@@ -252,6 +257,7 @@ const VOYAGEURS = [
     <div class="mesure">
       <div class="galet">
         <Photo src="/images/digne/vue-digne.webp" sizes="pleine" loading="lazy" decoding="async"
+               data-contenu-image={cleImage('/images/digne/vue-digne.webp')}
                alt="Digne-les-Bains au pied du Rocher de Neuf-Heures, les montagnes boisées tout autour"
                class="h-full w-full object-cover" />
         <div class="galet__texte">

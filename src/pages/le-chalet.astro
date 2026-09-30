@@ -5,6 +5,7 @@ import SectionHead from '../components/SectionHead.astro';
 import Photo from '../components/Photo.astro';
 import { VILLA, LEVELS, AMENITIES, RULES, GALLERY } from '../lib/villa';
 import { breadcrumb, faq } from '../lib/seo';
+import { cleImage } from '../lib/contenu-site';
 
 /* Les quatre questions balisées reprennent mot pour mot ce qu'affichent
    « Le séjour », « Le règlement » et la section des longs séjours, plus bas. */
@@ -37,6 +38,7 @@ const jsonLd = [breadcrumb(Astro.site, trail), faq()];
     <div class="grid gap-3 md:grid-cols-12">
       <figure data-anim="capsule" class="hover-zoom col-span-12 aspect-[16/10] overflow-hidden bg-sand md:col-span-8">
         <Photo src="/images/chalet/chalet-terrasse.webp" sizes="deux-tiers"
+               data-contenu-image={cleImage('/images/chalet/chalet-terrasse.webp')}
                alt="Le chalet en mélèze et sa grande terrasse, au soleil du matin"
                fetchpriority="high" decoding="async" class="h-full w-full object-cover" />
       </figure>
@@ -48,6 +50,7 @@ const jsonLd = [breadcrumb(Astro.site, trail), faq()];
         ].map(([src, alt]) => (
           <figure data-anim="capsule" class="hover-zoom aspect-[4/3] overflow-hidden bg-sand md:aspect-auto md:h-full">
             <Photo src={`${src}.webp`} sizes="tiers" alt={alt} loading="lazy" decoding="async"
+                   data-contenu-image={cleImage(`${src}.webp`)}
                    class="h-full w-full object-cover" />
           </figure>
         ))}
@@ -60,6 +63,7 @@ const jsonLd = [breadcrumb(Astro.site, trail), faq()];
     <div class="container-x grid items-start gap-12 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
       <div data-anim="capsule" class="arch hover-zoom relative aspect-[3/4] overflow-hidden bg-sand">
         <Photo src="/images/chalet/allee-lauriers.webp" sizes="tiers" loading="lazy" decoding="async"
+               data-contenu-image={cleImage('/images/chalet/allee-lauriers.webp')}
                alt="L’arrivée au chalet par l’allée, entre lauriers-roses et arbustes"
                class="h-full w-full object-cover" />
       </div>
@@ -108,6 +112,7 @@ const jsonLd = [breadcrumb(Astro.site, trail), faq()];
           <div class="pile__grille container-x">
             <div class="pile__vue hover-zoom">
               <Photo src={lv.img} sizes="moitie" alt={lv.alt} loading="lazy" decoding="async"
+                     data-contenu-image={cleImage(lv.img)}
                      class="h-full w-full object-cover" />
             </div>
             <div class="pile__dit">
@@ -209,6 +214,7 @@ const jsonLd = [breadcrumb(Astro.site, trail), faq()];
       </div>
       <div data-anim="capsule" class="hover-zoom relative aspect-[4/3] overflow-hidden">
         <Photo src="/images/chalet/bureau.webp" sizes="moitie" loading="lazy" decoding="async"
+               data-contenu-image={cleImage('/images/chalet/bureau.webp')}
                alt="Le coin bureau tout en pin, plan de travail jaune et carte du monde"
                class="h-full w-full object-cover" />
       </div>

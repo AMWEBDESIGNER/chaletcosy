@@ -6,6 +6,35 @@ export type ChampContenu = {
   valeur: string;
 };
 
+import { GALLERY } from './villa';
+
+/** Une même photographie garde la même clé partout où elle apparaît. */
+export const cleImage = (src: string) =>
+  `image.${src.split('/').pop()?.replace(/\.[^.]+$/, '') ?? 'photo'}`;
+
+const IMAGES_DIGNE = [
+  ['/images/digne/vue-digne.webp', 'Panorama de Digne-les-Bains'],
+  ['/images/digne/musee-promenade.webp', 'Musée Promenade'],
+  ['/images/digne/dalle-ammonites.webp', 'Dalle aux ammonites'],
+  ['/images/digne/thermes.webp', 'Thermes de Digne-les-Bains'],
+  ['/images/digne/rocher-neuf-heures.webp', 'Rocher de Neuf-Heures'],
+  ['/images/digne/notre-dame-du-bourg.webp', 'Notre-Dame-du-Bourg'],
+  ['/images/digne/maison-david-neel.webp', 'Maison d’Alexandra David-Néel'],
+  ['/images/digne/montagne.webp', 'Le Cousson'],
+  ['/images/digne/lavande-valensole.webp', 'Lavande du plateau de Valensole'],
+] as const;
+
+const CHAMPS_IMAGES: ChampContenu[] = [
+  ...GALLERY.map((photo) => ({
+    cle: cleImage(photo.src), page: 'Photographies', libelle: photo.alt,
+    type: 'image' as const, valeur: photo.src,
+  })),
+  ...IMAGES_DIGNE.map(([src, libelle]) => ({
+    cle: cleImage(src), page: 'Digne-les-Bains', libelle,
+    type: 'image' as const, valeur: src,
+  })),
+];
+
 /**
  * Registre explicite des contenus éditables.
  *
@@ -42,6 +71,13 @@ export const CHAMPS_CONTENU: ChampContenu[] = [
   { cle: 'contact.titre', page: 'Contact', libelle: 'Titre principal', type: 'texte', valeur: 'Nous contacter' },
   { cle: 'contact.introduction', page: 'Contact', libelle: 'Introduction', type: 'texte', valeur: 'Une question sur le chalet, les dates ou votre séjour ? Écrivez-nous.' },
   { cle: 'contact.formulaire.titre', page: 'Contact', libelle: 'Titre du formulaire', type: 'texte', valeur: 'Écrivez-nous' },
+
+  /* Les photographies du chalet et de Digne sont toutes remplaçables depuis
+     l’aperçu visuel. Les doublons sont supprimés plus bas : une photo
+     réutilisée à plusieurs endroits ne crée qu’un seul média à administrer. */
+  ...CHAMPS_IMAGES,
 ];
 
-export const CHAMPS_PAR_CLE = new Map(CHAMPS_CONTENU.map((champ) => [champ.cle, champ]));
+export const CHAMPS_PAR_CLE = new Map(
+  CHAMPS_CONTENU.map((champ) => [champ.cle, champ]),
+);

@@ -4,6 +4,7 @@ import Breadcrumb from '../components/Breadcrumb.astro';
 import Photo from '../components/Photo.astro';
 import { VILLA, mapUrl } from '../lib/villa';
 import { breadcrumb } from '../lib/seo';
+import { cleImage } from '../lib/contenu-site';
 
 /* Un seul littéral : le fil visible et son balisage disent le même chemin. */
 const trail: [string, string][] = [['Digne-les-Bains', '/digne-les-bains']];
@@ -141,6 +142,7 @@ const POIDS: Record<string, {
   <section class="container-x mt-14">
     <figure data-anim="capsule" class="hover-zoom relative aspect-[16/9] overflow-hidden bg-sand">
       <Photo src="/images/digne/vue-digne.webp" sizes="article"
+             data-contenu-image={cleImage('/images/digne/vue-digne.webp')}
              alt="Digne-les-Bains au pied du Rocher de Neuf-Heures, les montagnes boisées tout autour"
              fetchpriority="high" decoding="async" class="h-full w-full object-cover" />
     </figure>
@@ -170,6 +172,7 @@ const POIDS: Record<string, {
                  style={`aspect-ratio:${f.ratio}`}
                  data-anim="balayage" data-anim-sens={aDroite ? 'gauche' : undefined}>
               <Photo src={p.img} sizes={f.sizes} alt={p.alt} loading="lazy" decoding="async"
+                     data-contenu-image={cleImage(p.img)}
                      class="h-full w-full object-cover" />
             </div>
 

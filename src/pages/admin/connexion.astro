@@ -6,28 +6,6 @@ import { config } from '../../lib/serveur/base';
 
 const runtime = (Astro.locals as any).runtime?.env;
 
-/**
- * Où aller une fois entré.
- *
- * ⚠️ LA DESTINATION EST VÉRIFIÉE, PAS SUIVIE SUR PAROLE. Reprise telle
- *    quelle, elle ferait de cette page une redirection ouverte :
- *    `/admin/connexion?suite=https://ailleurs.exemple` enverrait une
- *    personne connectée sur un site tiers, depuis une adresse qui est la
- *    nôtre — c'est le socle d'un hameçonnage crédible.
- *
- * ⚠️ ON JUGE LE CHEMIN RÉSOLU, PAS LA CHAÎNE REÇUE. Deux façons de
- *    tromper une comparaison littérale : `/administration-piege`, qui
- *    commence bien par `/admin` sans être dans le back-office, et
- *    `/admin/../contact`, qui y ressemble mais atterrit ailleurs. Passer
- *    par `new URL` fait faire la résolution au navigateur plutôt qu'à
- *    nous, puis l'on compare des SEGMENTS — `/admin` exactement, ou
- *    quelque chose sous `/admin/`.
- *
- *    La base donnée à `new URL` est arbitraire et ne sert qu'à résoudre :
- *    une adresse absolue (`https://ailleurs.exemple`) la remplace, son
- *    `pathname` ne commencera donc pas par `/admin` et sera écartée —
- *    tout comme `//ailleurs.exemple`, externe malgré sa barre initiale.
- */
 function destination(brut: string | null): string {
   if (!brut) return '/admin';
   let chemin: string;
@@ -41,40 +19,28 @@ function destination(brut: string | null): string {
 
 const suite = destination(Astro.url.searchParams.get('suite'));
 let erreur = '';
+let emailSaisi = '';
 
 if (Astro.request.method === 'POST') {
   const formulaire = await Astro.request.formData();
-  const email = String(formulaire.get('email') ?? '').trim();
+  emailSaisi = String(formulaire.get('email') ?? '').trim();
   const motDePasse = String(formulaire.get('motdepasse') ?? '');
   const ou = destination(String(formulaire.get('suite') ?? '') || null);
 
-  if (!email || !motDePasse) {
+  if (!emailSaisi || !motDePasse) {
     erreur = 'Renseignez votre adresse et votre mot de passe.';
   } else {
-    const tentative = await connexion(runtime, email, motDePasse);
-
+    const tentative = await connexion(runtime, emailSaisi, motDePasse);
     if (tentative.jetons) {
-      /* Authentifié — reste à savoir si ce compte a le droit d'entrer.
-         Le contrôle du rôle appartient à `exigeAdmin()`, qui s'exécutera
-         sur la page d'arrivée : le refaire ici le dédoublerait, et deux
-         copies d'une règle de sécurité finissent toujours par diverger. */
       poseJetons(Astro, tentative.jetons);
       return Astro.redirect(ou);
     }
-
     erreur = tentative.echec === 'indisponible'
-      /* Ne pas dire « incorrect » quand on n'en sait rien : ce serait
-         envoyer quelqu'un chercher un mot de passe qui n'a rien perdu. */
       ? 'Service d’authentification injoignable. Réessayez dans un instant.'
-      /* Un seul message pour « compte inconnu » et « mot de passe faux ».
-         Deux messages distincts diraient lesquelles de ces adresses
-         existent, et l'on aurait offert la moitié du travail. */
       : 'Adresse ou mot de passe incorrect.';
   }
 }
 
-/* Sans configuration, le formulaire ne pourrait qu'échouer : autant le
-   dire, plutôt que de laisser quelqu'un douter de son mot de passe. */
 const configure = Boolean(config(runtime)) && Boolean(
   runtime?.SUPABASE_ANON_KEY ?? (import.meta.env as any)?.SUPABASE_ANON_KEY
 );
@@ -83,101 +49,104 @@ const configure = Boolean(config(runtime)) && Boolean(
 <html lang="fr">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="robots" content="noindex, nofollow" />
   <title>Connexion — Administration Chalet Cosy</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: #020946;
-      color: #26262c;
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 1.5rem;
-      -webkit-font-smoothing: antialiased;
-    }
-    .boite { width: 100%; max-width: 380px; }
-    .entete { text-align: center; margin-bottom: 1.75rem; color: #fff; }
-    .entete h1 { font-size: 1.3rem; font-weight: 600; letter-spacing: 0.01em; }
-    .entete p { font-size: 0.88rem; color: #ecd1a9; margin-top: 0.3rem; }
-
-    form { background: #fff; border-radius: 10px; padding: 1.75rem; }
-    label {
-      display: block; font-size: 0.85rem; font-weight: 600;
-      color: #020946; margin-bottom: 0.35rem;
-    }
-    input {
-      width: 100%; padding: 0.65rem 0.8rem; font: inherit; font-size: 0.95rem;
-      border: 1px solid #d8d8e0; border-radius: 6px; background: #fcfcfd;
-      margin-bottom: 1.1rem; transition: border-color 0.15s, box-shadow 0.15s;
-    }
-    input:focus {
-      outline: none; border-color: #020946; background: #fff;
-      box-shadow: 0 0 0 3px rgba(2, 9, 70, 0.09);
-    }
-    button {
-      width: 100%; padding: 0.7rem; font: inherit; font-size: 0.95rem;
-      font-weight: 600; color: #fff; background: #020946; cursor: pointer;
-      border: 0; border-radius: 6px; transition: opacity 0.15s;
-    }
-    button:hover { opacity: 0.9; }
-    button:disabled { opacity: 0.45; cursor: not-allowed; }
-
-    .erreur {
-      background: #fdeaea; color: #8c1d1d; border-left: 3px solid #c53030;
-      padding: 0.7rem 0.9rem; border-radius: 5px; font-size: 0.87rem;
-      margin-bottom: 1.1rem;
-    }
-    .avertissement {
-      background: #fdf7ec; color: #6b4d15; border-left: 3px solid #c08a2e;
-      padding: 0.7rem 0.9rem; border-radius: 5px; font-size: 0.85rem;
-      margin-bottom: 1.1rem;
-    }
-    .retour {
-      display: block; text-align: center; margin-top: 1.25rem;
-      color: rgba(255, 255, 255, 0.6); font-size: 0.85rem; text-decoration: none;
-    }
-    .retour:hover { color: #ecd1a9; }
-  </style>
 </head>
 <body>
-  <div class="boite">
-    <div class="entete">
-      <h1>Chalet Cosy</h1>
-      <p>Administration</p>
-    </div>
+  <div class="auth">
+    <section class="visuel" aria-label="Chalet Cosy à Digne-les-Bains">
+      <div class="visuel-texte">
+        <p class="sur-titre">Digne-les-Bains · Provence</p>
+        <h1>Le chalet,<br />entre vos mains.</h1>
+        <p>Réservations, textes et photos réunis dans un espace simple.</p>
+      </div>
+    </section>
 
-    <form method="POST">
-      {erreur && <div class="erreur" role="alert">{erreur}</div>}
+    <main class="connexion">
+      <div class="carte">
+        <a class="marque" href="/" aria-label="Retour au site Chalet Cosy">
+          <span>CHALET</span>
+          <strong>Cosy</strong>
+        </a>
 
-      {!configure && (
-        <div class="avertissement">
-          Connexion à la base non configurée — voir <code>SUPABASE_URL</code>,
-          <code>SUPABASE_ANON_KEY</code> et <code>SUPABASE_SERVICE_KEY</code>.
-        </div>
-      )}
+        <header>
+          <p class="sur-titre">Espace propriétaire</p>
+          <h2>Bienvenue</h2>
+          <p>Connectez-vous pour gérer le chalet.</p>
+        </header>
 
-      <input type="hidden" name="suite" value={suite} />
+        <form method="POST" id="connexion-form">
+          {erreur && <div class="message erreur" role="alert">{erreur}</div>}
+          {!configure && (
+            <div class="message avertissement" role="alert">
+              La connexion Supabase n’est pas encore configurée sur Cloudflare.
+            </div>
+          )}
 
-      <label for="email">Adresse électronique</label>
-      <input
-        type="email" id="email" name="email"
-        autocomplete="username" required autofocus
-      />
+          <input type="hidden" name="suite" value={suite} />
 
-      <label for="motdepasse">Mot de passe</label>
-      <input
-        type="password" id="motdepasse" name="motdepasse"
-        autocomplete="current-password" required
-      />
+          <div class="champ">
+            <label for="email">Adresse électronique</label>
+            <input
+              type="email" id="email" name="email" value={emailSaisi}
+              autocomplete="username" inputmode="email" required autofocus
+              placeholder="vous@exemple.fr"
+            />
+          </div>
 
-      <button type="submit" disabled={!configure}>Entrer</button>
-    </form>
+          <div class="champ">
+            <label for="motdepasse">Mot de passe</label>
+            <div class="mot-de-passe">
+              <input
+                type="password" id="motdepasse" name="motdepasse"
+                autocomplete="current-password" required
+                placeholder="Votre mot de passe"
+              />
+              <button type="button" class="afficher" id="afficher-mdp" aria-label="Afficher le mot de passe" aria-pressed="false">
+                <svg class="oeil-ouvert" viewBox="0 0 24 24" aria-hidden="true"><path d="M2.2 12s3.4-6 9.8-6 9.8 6 9.8 6-3.4 6-9.8 6-9.8-6-9.8-6Z"/><circle cx="12" cy="12" r="2.7"/></svg>
+                <svg class="oeil-ferme" viewBox="0 0 24 24" aria-hidden="true"><path d="m3 3 18 18M10.6 6.1A10.9 10.9 0 0 1 12 6c6.4 0 9.8 6 9.8 6a15.5 15.5 0 0 1-2.4 3.1M6.1 6.1C3.5 8 2.2 12 2.2 12s3.4 6 9.8 6c1.5 0 2.8-.3 4-.8M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>
+              </button>
+            </div>
+          </div>
 
-    <a href="/" class="retour">← Retour au site</a>
+          <button class="entrer" type="submit" disabled={!configure}>
+            <span>Se connecter</span>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>
+          </button>
+        </form>
+
+        <a class="retour" href="/">← Retour au site public</a>
+      </div>
+    </main>
   </div>
+
+  <script>
+    const bouton = document.getElementById('afficher-mdp') as HTMLButtonElement | null;
+    const motDePasse = document.getElementById('motdepasse') as HTMLInputElement | null;
+    bouton?.addEventListener('click', () => {
+      if (!motDePasse) return;
+      const affiche = motDePasse.type === 'password';
+      motDePasse.type = affiche ? 'text' : 'password';
+      bouton.setAttribute('aria-pressed', String(affiche));
+      bouton.setAttribute('aria-label', affiche ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+    });
+    document.getElementById('connexion-form')?.addEventListener('submit', () => {
+      const soumettre = document.querySelector<HTMLButtonElement>('.entrer');
+      if (!soumettre) return;
+      soumettre.disabled = true;
+      const texte = soumettre.querySelector('span');
+      if (texte) texte.textContent = 'Connexion…';
+    });
+  </script>
 </body>
 </html>
+
+<style is:global>
+  @font-face{font-family:"Newsreader";src:url("/fonts/newsreader.woff2") format("woff2");font-display:swap}
+  *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:#f4efe5;color:#1c2a20}body{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}.auth{min-height:100dvh;display:grid;grid-template-columns:minmax(360px,47%) 1fr}.visuel{position:relative;min-height:100dvh;background:linear-gradient(180deg,rgba(15,30,20,.08),rgba(15,30,20,.78)),url('/images/chalet/jardin-pelouse.webp') center/cover no-repeat;display:flex;align-items:flex-end;padding:clamp(2rem,5vw,5rem);color:#fff}.visuel:after{content:"";position:absolute;inset:1.2rem;border:1px solid rgba(255,255,255,.28);pointer-events:none}.visuel-texte{position:relative;z-index:1;max-width:520px}.sur-titre{text-transform:uppercase;letter-spacing:.22em;font-weight:700;font-size:.67rem;color:#b98b4c;margin:0 0 1rem}.visuel .sur-titre{color:#f0c481}.visuel h1{font-family:Newsreader,Georgia,serif;font-size:clamp(3.4rem,6.2vw,6.8rem);font-weight:500;line-height:.82;letter-spacing:-.045em;margin:0 0 1.6rem}.visuel-texte>p:last-child{font-family:Newsreader,Georgia,serif;font-size:1.25rem;line-height:1.4;max-width:390px}.connexion{display:grid;place-items:center;padding:clamp(2rem,7vw,8rem);min-width:0}.carte{width:min(100%,440px)}.marque{display:inline-flex;flex-direction:column;color:#1c2a20;text-decoration:none;margin-bottom:clamp(3.5rem,8vh,7rem);line-height:1}.marque span{letter-spacing:.43em;font-size:.61rem;margin-left:.35rem}.marque strong{font-family:Newsreader,Georgia,serif;font-style:italic;font-weight:500;font-size:2.55rem}.carte header{margin-bottom:2.25rem}.carte header h2{font-family:Newsreader,Georgia,serif;font-size:clamp(2.7rem,5vw,4rem);font-weight:500;line-height:.95;margin:0 0 .8rem}.carte header>p:last-child{color:#617064;margin:0;font-size:.94rem}.champ{margin-bottom:1.2rem}.champ label{display:block;font-size:.76rem;font-weight:700;margin-bottom:.52rem;color:#293c2e}.champ input{width:100%;height:52px;padding:0 .95rem;border:1px solid #ced2cc;border-radius:3px;background:rgba(255,255,255,.72);font:inherit;font-size:.94rem;color:#1c2a20;transition:border-color .16s,box-shadow .16s,background .16s}.champ input::placeholder{color:#9aa29b}.champ input:focus{outline:0;border-color:#8c6b3b;background:#fff;box-shadow:0 0 0 3px rgba(185,139,76,.13)}.mot-de-passe{position:relative}.mot-de-passe input{padding-right:3.35rem}.afficher{position:absolute;right:.5rem;top:50%;translate:0 -50%;width:38px;height:38px;border:0;background:transparent;color:#536158;display:grid;place-items:center;cursor:pointer}.afficher svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}.oeil-ferme,.afficher[aria-pressed=true] .oeil-ouvert{display:none}.afficher[aria-pressed=true] .oeil-ferme{display:block}.entrer{margin-top:.4rem;width:100%;height:54px;border:0;border-radius:3px;background:#1c2a20;color:#fff;padding:0 1.2rem;display:flex;align-items:center;justify-content:center;gap:.65rem;font:inherit;font-size:.84rem;font-weight:700;letter-spacing:.04em;cursor:pointer;transition:background .16s,transform .16s}.entrer:hover{background:#293c2e}.entrer:active{transform:translateY(1px)}.entrer:disabled{opacity:.6;cursor:not-allowed}.entrer svg{width:18px;fill:none;stroke:currentColor;stroke-width:1.8}.message{font-size:.82rem;line-height:1.45;padding:.8rem .9rem;border-radius:3px;margin-bottom:1rem}.message.erreur{color:#8b2e2e;background:#f8e7e5;border-left:3px solid #ae4941}.message.avertissement{color:#6d501f;background:#fbf2df;border-left:3px solid #c28a32}.retour{display:block;width:max-content;margin:1.6rem auto 0;color:#6b766d;font-size:.79rem;text-decoration:none}.retour:hover{color:#1c2a20}
+  @media(max-width:780px){.auth{display:block;position:relative;min-height:100dvh;padding:max(1rem,env(safe-area-inset-top)) 1rem max(1rem,env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(16,31,21,.36),rgba(16,31,21,.76)),url('/images/chalet/jardin-pelouse.webp') center/cover fixed}.visuel{display:none}.connexion{min-height:calc(100dvh - 2rem);padding:1rem;align-items:center}.carte{background:rgba(250,247,239,.96);padding:clamp(1.5rem,6vw,2.25rem);box-shadow:0 18px 60px rgba(8,22,13,.3);backdrop-filter:blur(8px)}.marque{margin-bottom:3rem}.carte header{margin-bottom:1.8rem}.carte header h2{font-size:3rem}.champ input{font-size:16px}.sur-titre{font-size:.6rem}}
+  @media(max-width:380px){.connexion{padding:0}.carte{padding:1.4rem}.marque{margin-bottom:2rem}}
+  @media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>

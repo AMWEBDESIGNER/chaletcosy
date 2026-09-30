@@ -64,7 +64,8 @@ let splits: SplitText[] = [];
    pas, il faut les retirer soi-même à chaque navigation. */
 let ecouteurs: Array<() => void> = [];
 
-const reduit = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reduit = () => new URLSearchParams(location.search).has('edition')
+  || matchMedia('(prefers-reduced-motion: reduce)').matches;
 /* Sur iOS, les effets pilotés image par image par le scroll (lissage,
    parallaxe et pin) se battent avec l'inertie native et les variations de
    hauteur provoquées par les barres de Safari. Le résultat est un léger

@@ -6,6 +6,7 @@ import { VILLA, GALLERY, GALLERY_GROUPS } from '../lib/villa';
 import { partition } from '../lib/partition';
 
 import { breadcrumb, imageGallery } from '../lib/seo';
+import { cleImage } from '../lib/contenu-site';
 
 /* La visionneuse (src/scripts/motion.ts) parcourt les `.gal` dans
    l'ordre du document : les groupes ci-dessous se suivent donc
@@ -109,6 +110,7 @@ const jsonLd = [breadcrumb(Astro.site, trail), imageGallery(Astro.site)];
                         data-derive={cel.span === 12 ? '' : undefined}
                         aria-label={`Agrandir : ${cel.photo.alt}`}>
                   <Photo src={cel.photo.src} sizes={cel.taille} alt={cel.photo.alt}
+                         data-contenu-image={cleImage(cel.photo.src)}
                          loading={gi === 0 && ri === 0 ? 'eager' : 'lazy'} decoding="async"
                          class="h-full w-full object-cover" />
                 </button>
