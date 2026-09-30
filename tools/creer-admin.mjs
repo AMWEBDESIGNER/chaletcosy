@@ -35,14 +35,14 @@ function env(nom) {
 
 const [email, motDePasse] = process.argv.slice(2);
 const URL_BASE = env('SUPABASE_URL').replace(/\/+$/, '');
-const SERVICE = env('SUPABASE_SERVICE_KEY');
+const SERVICE = env('SUPABASE_SECRET_KEY') || env('SUPABASE_SERVICE_KEY');
 
 if (!email || !motDePasse) {
   console.error("usage : node tools/creer-admin.mjs <courriel> <mot de passe>");
   process.exit(1);
 }
 if (!URL_BASE || !SERVICE) {
-  console.error('SUPABASE_URL et SUPABASE_SERVICE_KEY doivent être définis');
+  console.error('SUPABASE_URL et SUPABASE_SECRET_KEY doivent être définis');
   console.error('(dans le shell, ou dans .env.local à la racine du projet)');
   process.exit(1);
 }

@@ -8,9 +8,10 @@ base se crée une fois, à la main, dans le projet Supabase.
 1. Créer un projet Supabase (région **eu-west-3 / Paris** — les données
    sont nominatives et n'ont aucune raison de quitter l'Union).
 2. Ouvrir l'éditeur SQL et exécuter `schema.sql` en entier.
-3. Relever dans *Project settings → API* :
+3. Relever dans *Project settings → API Keys* :
    - l'URL du projet,
-   - la clé **`service_role`**.
+   - la clé **publishable**,
+   - la clé **secret**.
 
 ## Les variables, côté Cloudflare Pages
 
@@ -19,9 +20,10 @@ Dans *Settings → Environment variables* du projet Pages :
 | Variable | Valeur |
 |---|---|
 | `SUPABASE_URL` | l'URL du projet |
-| `SUPABASE_SERVICE_KEY` | la clé `service_role` |
+| `SUPABASE_PUBLISHABLE_KEY` | la clé `sb_publishable_…` |
+| `SUPABASE_SECRET_KEY` | la clé `sb_secret_…` |
 
-⚠️ **La clé `service_role` contourne toutes les règles de sécurité de la
+⚠️ **La clé `secret` contourne toutes les règles de sécurité de la
 base.** Elle ne doit jamais apparaître dans du code envoyé au navigateur,
 ni dans une variable préfixée `PUBLIC_` (Astro expose celles-là au client),
 ni dans le dépôt. Elle vit dans les variables Cloudflare, et nulle part
@@ -70,9 +72,12 @@ Le script crée le compte s'il n'existe pas, puis pose son profil en
 `admin`. Il est rejouable : sur un compte déjà connu, il se contente de
 remettre le rôle — ce qui est aussi la façon de lever une suspension.
 
-Il lit `SUPABASE_URL` et `SUPABASE_SERVICE_KEY` dans l'environnement, ou
+Il lit `SUPABASE_URL` et `SUPABASE_SECRET_KEY` dans l'environnement, ou
 à défaut dans `.env.local`. La connexion se fait ensuite sur
 `/admin/connexion`.
+
+Les anciennes variables `SUPABASE_ANON_KEY` et `SUPABASE_SERVICE_KEY`
+restent acceptées pour un projet déjà configuré avec les clés historiques.
 
 **Retirer un accès**, sans perdre la trace de qui l'avait :
 
