@@ -89,23 +89,12 @@ const VOYAGEURS = [
         Un chalet de bois tout confort au pied de la montagne&nbsp;— à deux pas des thermes.
       </p>
 
-      {/* L'appel à l'action, nommé par sa DESTINATION. Le frontispice n'en
-          avait aucun : le premier « Réserver » de la page était celui de
-          l'en-tête, et il ne dit pas où il mène. La réservation se fait sur
-          Airbnb — l'annonce est le seul canal — et le nommer évite au
-          visiteur la surprise d'un site tiers qui s'ouvre.
-
-          `btn-light` et non `btn-primary` : posé sur la photographie, le
-          bouton plein d'encre se confondrait avec le voile du hero. Le
-          contour clair tient sur le calcaire du ciel comme sur les pins —
-          c'est la règle des fonds photographiques (bone ou bronze-lt,
-          jamais la sauge, qui se perd dans le feuillage). */}
-      <a href={VILLA.airbnb} target="_blank" rel="noopener"
-         class="btn btn-light fronti__cta" data-fronti-cta>
-        Réserver sur Airbnb
+      {{/* L'appel à l'action mène directement au formulaire de contact. */}
+      <a href="/contact" class="btn btn-light fronti__cta" data-fronti-cta>
+        Réserver
       </a>
 
-      <dl class="fronti__fiche" data-fronti-fiche>
+      <dl class="fronti__fiche data-fronti-fiche>
         <div><dt>Surface</dt><dd>{VILLA.surface} m²</dd></div>
         <div><dt>Voyageurs</dt><dd>Quatre</dd></div>
         <div><dt>Chambre</dt><dd>Une</dd></div>
@@ -360,9 +349,9 @@ const VOYAGEURS = [
       </p>
 
       <div class="duo mt-14">
-        <Tile href={VILLA.airbnb} ext img="/images/chalet/chalet-fleurs.webp"
+        <Tile href="/contact" img="/images/chalet/chalet-fleurs.webp"
               alt="Le chalet entre les arbres, fleurs mauves au premier plan"
-              title="Séjourner" cta="Voir les disponibilités" sizes="moitie"
+              title="Séjourner" cta="Demander les disponibilités" sizes="moitie"
               abstract={`Arrivée ${VILLA.checkIn}. Départ ${VILLA.checkOut}.`} />
         <Tile href="/contact" img="/images/chalet/bureau.webp"
               alt="Le coin bureau tout en pin, plan de travail jaune et carte du monde"
@@ -372,14 +361,7 @@ const VOYAGEURS = [
     </div>
   </section>
 
-  <!-- ═══════════ X bis. LA RÉSERVATION ═══════════
-       Placée ICI et pas plus haut : elle demande des dates, et l'on ne
-       donne pas ses dates avant d'avoir vu le chalet. Tout ce qui précède
-       sert à ce qu'on arrive à ce bloc en sachant déjà si l'on veut venir.
-
-       Le direct et Airbnb y figurent ensemble, sans que l'un pousse
-       l'autre : ils s'adressent à deux personnes différentes. Détail dans
-       le composant. -->
+  <!-- ═══════════ X bis. LA RÉSERVATION ═══════════ -->
   <Reserver />
   <FormeReservation />
 
@@ -390,11 +372,11 @@ const VOYAGEURS = [
         Dites-nous vos dates.<br />Nous répondons sous vingt-quatre heures.
       </p>
       <div class="mt-10 flex flex-wrap justify-center gap-4">
-        <a href={VILLA.airbnb} target="_blank" rel="noopener" class="btn btn-primary">Réserver le séjour</a>
+        <a href="/contact" class="btn btn-primary">Réserver le séjour</a>
         <a href="/contact" class="btn btn-ghost">Nous écrire</a>
       </div>
       <p class="num mt-9 text-[0.74rem] uppercase tracking-[0.16em] text-muted">
-        ★ {VILLA.rating} · premiers avis de voyageurs sur Airbnb
+        ★ {VILLA.rating} · avis de voyageurs
       </p>
     </div>
   </section>
