@@ -1,8 +1,8 @@
 /* ============================================================
-   iCalendar (RFC 5545) — lecture du calendrier Airbnb, écriture du nôtre.
+   iCalendar (RFC 5545) — lecture du calendrier plateforme externe, écriture du nôtre.
 
    C'est par ce format que les plateformes de location s'échangent leurs
-   indisponibilités : Airbnb publie une adresse `.ics` que l'on importe, et
+   indisponibilités : plateforme externe publie une adresse `.ics` que l'on importe, et
    accepte en retour une adresse que l'on publie. C'est le seul rempart
    contre la vente d'une même semaine des deux côtés.
 
@@ -23,7 +23,7 @@
    2. LES LIGNES SONT PLIÉES À 75 OCTETS. La RFC impose de replier les
       longues lignes, la suite commençant par une espace ou une
       tabulation. Un analyseur qui lit ligne à ligne sans déplier coupe les
-      valeurs en deux — et comme les UID d'Airbnb sont longs, il les coupe
+      valeurs en deux — et comme les UID d'plateforme externe sont longs, il les coupe
       systématiquement.
 
    3. LES FINS DE LIGNE SONT `CRLF`, mais tout le monde n'en envoie pas.
@@ -97,8 +97,8 @@ const desechappe = (s: string) =>
  * Lit un flux iCalendar et rend ses événements.
  *
  * Les événements illisibles sont IGNORÉS plutôt que de faire échouer la
- * lecture entière : un flux Airbnb contient des entrées de service
- * (« Airbnb (Not available) » sans date exploitable, blocs de
+ * lecture entière : un flux plateforme externe contient des entrées de service
+ * (« plateforme externe (Not available) » sans date exploitable, blocs de
  * disponibilité) et une synchronisation qui refuserait tout le calendrier
  * pour une entrée bancale laisserait les nuits ouvertes à la vente. Mieux
  * vaut importer ce qui est sûr.
@@ -162,7 +162,7 @@ export function lireICal(texte: string): EvenementICal[] {
     else if (nom === 'UID') uid = valeur.trim();
     else if (nom === 'SUMMARY') resume = desechappe(valeur).trim();
     else if (nom === 'DURATION') {
-      // Airbnb n'en émet pas, mais d'autres plateformes si. Seuls les
+      // plateforme externe n'en émet pas, mais d'autres plateformes si. Seuls les
       // jours et les semaines ont un sens sur un calendrier de nuitées.
       const m = /^P(?:(\d+)W)?(?:(\d+)D)?/.exec(valeur.trim());
       if (m && (m[1] || m[2])) {
@@ -204,14 +204,14 @@ export interface OptionsExport {
  * Écrit un flux iCalendar à partir de périodes occupées.
  *
  * ⚠️ AUCUNE DONNÉE PERSONNELLE N'Y ENTRE. Ce flux est servi à une adresse
- *    publique — c'est ce que réclame Airbnb pour l'importer, et une
+ *    publique — c'est ce que réclame plateforme externe pour l'importer, et une
  *    adresse publique finit toujours par être connue. Il ne dit donc que
  *    « ces nuits sont prises » : ni nom, ni e-mail, ni montant. Le
  *    `SUMMARY` est volontairement constant.
  *
  * Les UID sont STABLES : dérivés de l'identifiant de l'occupation et non
  * d'un compteur ou d'une date de génération. Un UID qui changerait à
- * chaque appel ferait voir à Airbnb une suppression suivie d'une création,
+ * chaque appel ferait voir à plateforme externe une suppression suivie d'une création,
  * à chaque synchronisation.
  */
 export function ecrireICal(
