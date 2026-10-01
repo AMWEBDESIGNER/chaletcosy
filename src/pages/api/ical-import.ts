@@ -1,5 +1,5 @@
 /* ============================================================
-   Import iCalendar — synchronisation depuis Airbnb.
+   Import iCalendar — synchronisation depuis plateforme externe.
 
    Reçoit un fichier iCal et importe les occupations avec
    idempotence via uid_externe. Les doublons sont ignorés.
@@ -21,7 +21,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
   }
 
   /* Vérifier la clé secrète — l'import iCal ne doit venir que d'une source
-     de confiance (administrateur, webhook Airbnb signé). */
+     de confiance (administrateur, webhook plateforme externe signé). */
   const cle = request.headers.get('Authorization')?.replace('Bearer ', '');
   if (!cle || cle !== runtime?.ICAL_IMPORT_SECRET) {
     return new Response(JSON.stringify({ erreur: 'Non autorisé.' }), {
