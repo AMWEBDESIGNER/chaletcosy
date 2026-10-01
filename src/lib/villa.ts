@@ -2,9 +2,8 @@
    Chalet Cosy — source unique des informations du chalet.
 
    Toutes les pages lisent d'ici : un chiffre corrigé une fois l'est
-   partout. Les données proviennent de l'annonce Airbnb du propriétaire
-   et de sa fiche de présentation (« Chalet 30 m² tout confort au pied
-   de la montagne »).
+   partout. Les données proviennent de la fiche de présentation du chalet
+   (« Chalet 30 m² tout confort au pied de la montagne »).
 
    Le fichier et l'objet `VILLA` gardent leur nom d'origine : le site
    est issu du gabarit de La Belle Étoile, et ces identifiants sont lus
@@ -54,8 +53,6 @@ export const VILLA = {
   checkIn: '15:00 – 17:00',
   checkOut: 'avant 11:00',
 
-  /** L'annonce d'origine, où se fait la réservation. */
-  airbnb: 'https://www.airbnb.fr/rooms/1742976957181102288',
 } as const;
 
 /**
