@@ -114,12 +114,14 @@ function lightbox() {
     opener = from;
     show(n);
     lb.hidden = false;
-    requestAnimationFrame(() => {
-      lb.classList.add('is-open');
-      // La grande image n'a sa place qu'une fois la visionneuse affichée.
-      if (img.complete) vol(from);
-      else img.addEventListener('load', () => vol(from), { once: true });
+    lb.classList.add('is-open');
+    // La visionneuse reste utilisable même si l'image est déjà en cache ou si
+    // l'animation FLIP rencontre un navigateur qui ne la prend pas en charge.
+    const ajuster = () => requestAnimationFrame(() => {
+      try { vol(from); } catch { /* l'image reste affichée sans animation */ }
     });
+    if (img.complete && img.naturalWidth > 0) ajuster();
+    else img.addEventListener('load', ajuster, { once: true });
     document.documentElement.classList.add('menu-open');
     (lb.querySelector('#lb-close') as HTMLElement)?.focus();
   };
