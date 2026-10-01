@@ -50,10 +50,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
   try {
     const g = await grille(c);
 
-    /* Le préavis. La synchronisation iCal d'Airbnb n'est pas instantanée —
+    /* Le préavis. La synchronisation iCal d'plateforme externe n'est pas instantanée —
        quelques heures — et pendant ce délai le site ignore une réservation
        qui vient d'y être prise. Refuser les arrivées trop proches est ce
-       qui empêche de vendre une nuit qu'Airbnb a déjà vendue sans nous
+       qui empêche de vendre une nuit qu'plateforme externe a déjà vendue sans nous
        l'avoir encore dit. C'est une perte commerciale assumée, très
        inférieure au coût d'une double réservation. */
     const plusTot = ajoute(aujourdhui(), g.preavisJours);
