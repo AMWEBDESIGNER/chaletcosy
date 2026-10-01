@@ -221,7 +221,7 @@ export const GALLERY: Photo[] = [
   p('salon-lumiere', 'Le salon avec son canapé, ses fenêtres sur le jardin et sa table ronde en bois', 'La pièce à vivre'),
   p('salon-canape', 'Le coin salon : canapé, table basse ronde et tableaux de paysages', 'La pièce à vivre'),
   p('cuisine-entree', 'La cuisine équipée, la porte d’entrée vitrée et la petite fenêtre de bois', 'La pièce à vivre'),
-  p('cuisine-porte-ouverte', 'La cuisine et la porte ouverte sur l’allée ensoleillée', 'La pièce à vivre'),
+  p('cuisine-porte-ouverte', 'Le salon avec son canapé et ses fenêtres ouvertes sur le jardin', 'La pièce à vivre'),
   p('cuisine-equipement', 'Micro-ondes, lave-vaisselle, évier et grand réfrigérateur', 'La pièce à vivre'),
 
   // Le coin nuit
