@@ -28,8 +28,8 @@ export const AGENCY = {
   city: 'Digne-les-Bains',
   country: 'France',
 
-  phone: '+33 4 92 00 00 00',
-  phoneHref: 'tel:+33492000000',
+  phone: '+33 6 80 76 87 98',
+  phoneHref: 'tel:+33680768798',
   email: 'dvs240@yahoo.fr',
   director: 'À compléter',
 
