@@ -87,7 +87,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
     if (g.provisoires && !s.test) {
       console.error('[option] REFUS : clé Stripe de production avec des tarifs provisoires.');
       return json(409, {
-        erreur: 'La réservation en ligne n’est pas encore ouverte. Écrivez-nous ou passez par Airbnb.',
+        erreur: 'La réservation en ligne n’est pas encore ouverte. Écrivez-nous via le formulaire de contact.',
       });
     }
 
