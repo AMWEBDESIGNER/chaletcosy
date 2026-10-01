@@ -97,7 +97,7 @@ export function initReserver(): () => void {
       /* ⚠️ ON NE MONTRE PAS UN CALENDRIER VIDE. Sans disponibilités, tout
          paraîtrait libre, et le visiteur composerait un séjour sur des
          nuits peut-être vendues avant d'être refusé à la validation. On
-         préfère dire que le calendrier est en panne et laisser Airbnb
+         préfère dire que le calendrier est en panne et inviter à écrire
          prendre le relais. */
       e.panne = err instanceof Error ? err.message : 'indisponible';
       e.charge = true;
@@ -142,7 +142,7 @@ export function initReserver(): () => void {
     if (e.panne) {
       grilles.innerHTML =
         '<p class="res-panne">Le calendrier est momentanément indisponible. ' +
-        'Les dates restent réservables sur Airbnb, ou par le formulaire de contact.</p>';
+        'Les dates restent accessibles par le formulaire de contact.</p>';
       majResume();
       return;
     }
