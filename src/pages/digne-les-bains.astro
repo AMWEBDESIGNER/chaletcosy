@@ -58,7 +58,7 @@ const places = [
     meta: 'Via ferrata et randonnées',
     img: '/images/digne/rocher-neuf-heures.webp',
     alt: 'Les crêtes rocheuses au-dessus de Digne, les sommets enneigés des Alpes à l’horizon',
-    desc: "La falaise qui domine la ville porte une via ferrata, celle de la Grande Fistoire. Pour qui préfère marcher, les sentiers des Préalpes de Digne partent de partout, et les vélos du chalet attendent sous la terrasse.",
+    desc: "Au départ du centre-ville, la via ferrata du Rocher de Neuf-Heures propose plusieurs itinéraires avec une vue remarquable sur Digne. Comptez 45 minutes à 1 heure de marche d’approche, puis jusqu’à 750 m de parcours selon l’itinéraire : une vraie sortie d’aventure, accessible avec le matériel adapté et l’accompagnement d’un professionnel pour les débutants. Pour qui préfère marcher, les sentiers des Préalpes de Digne partent de partout, et les vélos du chalet attendent sous la terrasse.",
   },
   {
     name: 'Notre-Dame-du-Bourg',
@@ -83,6 +83,22 @@ const places = [
     img: '/images/digne/montagne.webp',
     alt: 'Le Cousson, sommet boisé des Préalpes de Digne sous un ciel d’orage',
     desc: "La montagne qui ferme l’horizon du chalet. Son sommet se gagne à pied depuis la ville, et ses pentes font partie de ce que l’annonce appelle les richesses naturelles environnantes. Au retour, le plan d’eau des Ferréols attend au bord de la Bléone.",
+  },
+  {
+    name: 'La station de Chabanon',
+    poids: 'moyen',
+    meta: 'Ski et montagne — environ 1 h',
+    img: '/images/digne/montagne.webp',
+    alt: 'Les montagnes des Alpes du Sud autour de Digne-les-Bains',
+    desc: "À environ une heure de Digne, Chabanon est une station familiale de la montagne de la Blanche : ski alpin, domaine nordique et grands espaces en hiver. Le chalet permet de combiner séjour thermal, découverte de la Provence et escapade à la neige.",
+  },
+  {
+    name: 'Le futur casino de Digne-les-Bains',
+    poids: 'intime',
+    meta: 'Au Vallon des Sources — ouverture prévue fin 2026',
+    img: '/images/digne/thermes.webp',
+    alt: 'Le vallon des Sources et les reliefs autour de Digne-les-Bains',
+    desc: "Un futur casino Golden Palace est en construction au Vallon des Sources, près du quartier thermal. Son ouverture est annoncée pour la fin de 2026 : une nouvelle adresse de sorties et de restauration à proximité du logement.",
   },
   {
     name: 'La lavande',
@@ -117,7 +133,7 @@ const POIDS: Record<string, {
 };
 ---
 <Layout title="Digne-les-Bains — thermes, Géoparc, lavande et montagne"
-        description="Les thermes, la dalle aux ammonites, le Musée Promenade, la via ferrata et les champs de lavande : tout ce qui entoure le Chalet Cosy à Digne-les-Bains."
+        description="Les thermes, la via ferrata du Rocher de Neuf-Heures, Chabanon, le futur casino et les champs de lavande : tout ce qui entoure le Chalet Cosy à Digne-les-Bains."
         image="/images/digne/vue-digne.webp"
         imageAlt="Digne-les-Bains au pied du Rocher de Neuf-Heures"
         jsonLd={breadcrumb(Astro.site, trail)}>
@@ -242,7 +258,7 @@ const POIDS: Record<string, {
       <p data-contenu="digne.conclusion" class="lead max-w-md">Le chalet est au milieu de tout cela, au calme de son jardin.</p>
       <div class="flex flex-wrap gap-4">
         <a href="/le-chalet" class="btn btn-ghost">Découvrir le chalet</a>
-        <a href={VILLA.airbnb} target="_blank" rel="noopener" class="btn btn-primary">Réserver</a>
+        <a href="/contact" class="btn btn-primary">Réserver</a>
       </div>
     </div>
   </section>
