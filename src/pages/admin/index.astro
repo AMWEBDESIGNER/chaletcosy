@@ -71,9 +71,9 @@ const euros = new Intl.NumberFormat('fr-FR', {
   </div>
 
   <div class="carte">
-    <h2>Synchronisation Airbnb</h2>
+    <h2>Synchronisation plateforme externe</h2>
     <p style="color:#6b6b76;font-size:0.9rem;margin-bottom:1rem">
-      Les nuits vendues ici et celles vendues sur Airbnb occupent le même chalet.
+      Les nuits vendues ici et celles vendues sur plateforme externe occupent le même chalet.
       Ces deux adresses les tiennent alignées.
     </p>
     <table>
@@ -84,12 +84,12 @@ const euros = new Intl.NumberFormat('fr-FR', {
         <tr>
           <td><strong>Sortant</strong></td>
           <td><code>/api/ical-export</code></td>
-          <td>À coller dans Airbnb, qui viendra le lire.</td>
+          <td>À coller dans plateforme externe, qui viendra le lire.</td>
         </tr>
         <tr>
           <td><strong>Entrant</strong></td>
           <td><code>/api/ical-import</code></td>
-          <td>Reçoit le calendrier d’Airbnb. Protégé par <code>ICAL_IMPORT_SECRET</code>.</td>
+          <td>Reçoit le calendrier d’plateforme externe. Protégé par <code>ICAL_IMPORT_SECRET</code>.</td>
         </tr>
       </tbody>
     </table>
