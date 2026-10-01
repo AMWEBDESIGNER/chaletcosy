@@ -103,7 +103,7 @@ const h = height ?? entry?.h;
     transparent à la mise en page, donc il ne coûte rien, et l'image n'a
     qu'une seule écriture au lieu de deux branches jumelles à tenir. */}
 <picture>
-  {entry && (
+  {entry && entry.avif.length > 0 && (
     <>
       <source type="image/avif" sizes={sizesAttr} {...held('srcset', set(entry.avif, 'avif'))} />
       <source type="image/webp" sizes={sizesAttr} {...held('srcset', set(entry.webp, 'webp', entry.w))} />
