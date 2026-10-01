@@ -275,17 +275,8 @@
     "stem": "/images/rendus/chalet/cuisine-porte-ouverte",
     "w": 1920,
     "h": 1440,
-    "webp": [
-      480,
-      800,
-      1280
-    ],
-    "avif": [
-      480,
-      800,
-      1280,
-      1920
-    ]
+    "webp": [],
+    "avif": []
   },
   "/images/chalet/douche.webp": {
     "stem": "/images/rendus/chalet/douche",
