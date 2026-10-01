@@ -17,7 +17,7 @@ const links = [
 
 /* Colonne de droite : ce qui relève du séjour, non de la visite. */
 const aside = [
-  { href: VILLA.airbnb, label: 'Réserver le séjour', ext: true },
+  { href: '/contact', label: 'Réserver le séjour', ext: false },
   { href: '/contact', label: 'Demander une date', ext: false },
 ];
 ---
@@ -26,7 +26,7 @@ const aside = [
     <Brand variant="compact" tone="auto" />
 
     <div class="flex items-center gap-5 sm:gap-7">
-      <a href={VILLA.airbnb} target="_blank" rel="noopener"
+      <a href="/contact"
          class="btn btn-ghost hidden whitespace-nowrap !px-5 !py-2.5 !text-[0.68rem] sm:inline-flex">
         Réserver
       </a>
