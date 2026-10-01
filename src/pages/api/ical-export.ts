@@ -1,8 +1,8 @@
 /* ============================================================
-   Export iCalendar — synchronisation avec Airbnb.
+   Export iCalendar — synchronisation avec plateforme externe.
 
    Cette route exporte en RFC 5545 les occupations confirmées
-   et les options en attente. Airbnb peut importer cet iCal
+   et les options en attente. plateforme externe peut importer cet iCal
    pour rester synchronisé.
 
    Les événements portent un UID stable dérivé de l'ID occupation,
