@@ -2,18 +2,13 @@
 /* ============================================================
    Le bloc de réservation : deux voies, côte à côte.
 
-   Le direct et Airbnb ne sont pas en concurrence sur cette page — ils
-   s'adressent à deux personnes différentes. Celle qui connaît déjà la
-   chalet veut des dates et un prix ; celle qui arrive d'une recherche veut
-   la caution d'une plateforme et ses avis. Cacher l'une pour pousser
-   l'autre fait perdre les deux.
+   La réservation se fait désormais directement par le formulaire de contact.
+   Le calendrier peut aider à choisir des dates, puis chaque demande est traitée
+   personnellement par l’hôte.
 
    ⚠️ SANS JAVASCRIPT, LE CALENDRIER N'EXISTE PAS — et c'est assumé : un
       calendrier de disponibilité est par nature une interrogation du
-      serveur. Ce qui n'est PAS assumé, ce serait de laisser le visiteur
-      devant un trou. Le repli est donc écrit dans le HTML : Airbnb et le
-      formulaire de contact, tous deux pleinement fonctionnels sans script.
-      Le script remplace ce repli, il ne le complète pas.
+      serveur. Le formulaire de contact reste toujours accessible, même sans script.
    ============================================================ */
 import { VILLA } from '../lib/villa';
 
@@ -28,8 +23,7 @@ const { class: cls = '' } = Astro.props;
         <h2 data-anim="lignes" class="h-lg mt-5">Vos dates,<br />votre prix.</h2>
       </div>
       <p class="max-w-sm text-sm leading-relaxed text-muted">
-        En direct, sans frais de plateforme. Ou sur Airbnb, si vous préférez
-        y retrouver vos avis et votre historique.
+        Écrivez-nous directement : nous vous répondrons personnellement avec les disponibilités et le tarif.
       </p>
     </div>
 
@@ -52,7 +46,7 @@ const { class: cls = '' } = Astro.props;
         <div data-cal-mois class="res-mois-lot">
           <p class="res-panne">
             Le calendrier demande JavaScript. Les disponibilités et la réservation
-            restent accessibles sur Airbnb, ou par le formulaire de contact.
+            reste accessible par le formulaire de contact.
           </p>
         </div>
 
@@ -85,11 +79,8 @@ const { class: cls = '' } = Astro.props;
         <div data-devis class="res-devis"></div>
 
         <div class="res-fiche__bas">
-          <button type="button" data-reserver-btn class="btn btn-dark w-full" disabled>
+          <a href="/contact" class="btn btn-dark w-full">
             Réserver
-          </button>
-          <a href={VILLA.airbnb} target="_blank" rel="noopener" class="btn btn-ghost w-full">
-            Réserver sur Airbnb
           </a>
           <p class="res-alt">
             Une question, un séjour long, un événement&nbsp;?
