@@ -131,7 +131,7 @@ export function estLibre(demande: Periode, occupees: readonly Periode[]): boolea
 /**
  * Fusionne les périodes qui se touchent ou se chevauchent.
  *
- * Les calendriers importés (Airbnb) livrent une entrée par réservation :
+ * Les calendriers importés (plateforme externe) livrent une entrée par réservation :
  * deux séjours consécutifs y sont deux blocs collés. Fusionnés, ils
  * deviennent une seule indisponibilité, et le calendrier cesse d'afficher
  * une fausse nuit libre entre les deux.
