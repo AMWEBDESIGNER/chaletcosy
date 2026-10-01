@@ -30,7 +30,7 @@ export const AGENCY = {
 
   phone: '+33 4 92 00 00 00',
   phoneHref: 'tel:+33492000000',
-  email: 'contact@chaletcosy.fr',
+  email: 'dvs240yahoo.fr',
   director: 'À compléter',
 
   /** Numéro d'enregistrement du meublé de tourisme (mairie de Digne-les-Bains). */
