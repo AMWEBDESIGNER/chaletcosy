@@ -419,17 +419,8 @@
     "stem": "/images/rendus/chalet/salon-lumiere",
     "w": 1920,
     "h": 2560,
-    "webp": [
-      480,
-      800,
-      1280
-    ],
-    "avif": [
-      480,
-      800,
-      1280,
-      1920
-    ]
+    "webp": [],
+    "avif": []
   },
   "/images/chalet/terrasse-gravier.webp": {
     "stem": "/images/rendus/chalet/terrasse-gravier",
